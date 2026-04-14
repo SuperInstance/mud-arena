@@ -3,456 +3,421 @@
 <head>
 <meta charset="UTF-8">
 <title>MUD Arena</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;700&display=swap" rel="stylesheet">
 <style>
-/* ==== GLOBAL ==== */
-html,body{margin:0;padding:0;height:100%;font-family:'Roboto Mono',monospace;background:#0a0a0a;color:#0f0;overflow:hidden}
-a{color:#0f0;text-decoration:none}
-button{cursor:pointer}
-
-/* ==== LANDING PAGE ==== */
-#landing{
-  display:flex;flex-direction:column;align-items:center;justify-content:center;
-  height:100%;background:#001b2e;position:relative;overflow:hidden;
-}
-.title{font-size:3rem;margin:0}
-.subtitle{font-size:1.2rem;margin:0.5rem 0 2rem;color:#88c}
-.logo{
-  position:relative;width:120px;height:200px;margin-bottom:2rem;
-}
-.lighthouse{
-  position:absolute;bottom:0;left:50%;transform:translateX(-50%);
-  width:30px;height:80px;background:#555;border-radius:4px;
-}
-.lighthouse::after{
-  content:'';position:absolute;bottom:100%;left:50%;transform:translateX(-50%);
-  width:0;height:0;border-left:20px solid transparent;border-right:20px solid transparent;
-  border-bottom:30px solid #555;
-}
-.radar{
-  position:absolute;top:0;left:50%;transform:translateX(-50%);
-  width:120px;height:120px;
-}
-.radar .ring{
-  position:absolute;top:0;left:0;width:100%;height:100%;border:2px solid #0f0;
-  border-radius:50%;animation:spin 6s linear infinite;
-}
-.radar .ring:nth-child(2){animation-duration:4s;opacity:0.7}
-.radar .ring:nth-child(3){animation-duration:2s;opacity:0.5}
-@keyframes spin{from{transform:rotate(0)}to{transform:rotate(360deg)}}
-
-/* Form */
-#configForm{
-  background:#001020;padding:1.5rem;border-radius:8px;box-shadow:0 0 12px #000;
-  width:90%;max-width:420px;display:flex;flex-direction:column;gap:0.8rem;
-}
-#configForm select,
-#configForm input{
-  padding:0.6rem;background:#001530;color:#0f0;border:1px solid #0a0a0a;border-radius:4px;
-}
-#configForm button{
-  padding:0.8rem;background:#0a0; color:#001b2e; border:none;
-  font-weight:bold; border-radius:4px; box-shadow:0 0 8px #0a0;
-  transition:box-shadow .2s;
-}
-#configForm button:hover{box-shadow:0 0 16px #0f0}
-
-/* Footer */
-footer{position:absolute;bottom:0;width:100%;text-align:center;padding:0.5rem;font-size:0.8rem;color:#555}
-
-/* ==== TERMINAL ==== */
-#terminal{
-  display:none;flex-direction:column;height:100%;background:#000;
-}
-#termContainer{
-  flex:1;display:flex;overflow:hidden;
-}
-#output{
-  flex:3;background:#000;color:#0f0;padding:1rem;font-size:0.95rem;overflow-y:auto;white-space:pre-wrap;
-}
-#status{
-  flex:1;background:#111;color:#8f8;padding:1rem;font-size:0.85rem;overflow-y:auto;
-}
-#inputBar{
-  display:flex;background:#111;padding:0.5rem;
-}
-#inputBar input{
-  flex:1;background:#000;color:#0f0;border:none;padding:0.5rem;font-size:1rem;outline:none;
-}
-#inputBar button{
-  background:#0a0;color:#001b2e;border:none;padding:0.5rem 1rem;margin-left:0.5rem;
-}
-
-/* Fade */
-.fade-out{animation:fadeOut .6s forwards}
-@keyframes fadeOut{to{opacity:0;visibility:hidden}}
-.fade-in{animation:fadeIn .6s forwards}
-@keyframes fadeIn{from{opacity:0;visibility:hidden}to{opacity:1;visibility:visible}}
-
-/* Mobile */
-@media(max-width:600px){
-  .title{font-size:2.2rem}
-  #configForm{font-size:0.9rem}
-}
+    body,html{margin:0;padding:0;height:100%;font-family:Arial,Helvetica,sans-serif;background:#111;color:#eee;}
+    /* Landing */
+    #landing{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;text-align:center;background:#0d0d0d;}
+    .logo{position:relative;width:120px;height:120px;margin:20px;}
+    .logo div{position:absolute;border:4px solid #0ff;border-radius:50%;animation:spin 6s linear infinite;}
+    .logo div:nth-child(1){width:120px;height:120px;top:0;left:0;}
+    .logo div:nth-child(2){width:90px;height:90px;top:15px;left:15px;}
+    .logo div:nth-child(3){width:60px;height:60px;top:30px;left:30px;}
+    @keyframes spin{from{transform:rotate(0deg);}to{transform:rotate(360deg);}}
+    #boardBtn{padding:12px 24px;margin-top:20px;font-size:1.1rem;background:#0ff;color:#000;border:none;border-radius:8px;cursor:pointer;animation:glow 2s infinite;}
+    @keyframes glow{0%{box-shadow:0 0 5px #0ff;}50%{box-shadow:0 0 20px #0ff;}100%{box-shadow:0 0 5px #0ff;}}
+    footer{margin-top:40px;font-size:0.9rem;color:#777;}
+    select,input{margin:5px;padding:8px;width:250px;border:none;border-radius:4px;}
+    input[type="password"]{font-family:monospace;}
+    /* Terminal */
+    #terminal{display:none;flex-direction:row;height:100vh;}
+    #output{flex:2;background:#000;padding:10px;overflow-y:auto;white-space:pre-wrap;font-family:"Courier New",monospace;}
+    #status{flex:1;background:#111;padding:10px;display:flex;flex-direction:column;overflow-y:auto;}
+    #cmdLine{display:flex;background:#222;padding:5px;}
+    #cmdInput{flex:1;background:#111;color:#0f0;border:none;padding:5px;font-family:"Courier New",monospace;}
+    #sendBtn{background:#0ff;color:#000;border:none;padding:5px 10px;margin-left:5px;cursor:pointer;}
+    .bar{height:12px;background:#555;margin:4px 0;border-radius:4px;overflow:hidden;}
+    .fill{height:100%;width:0;background:#0f0;}
+    .red{background:#f00;}
+    .yellow{background:#ff0;}
+    .miniMap{font-family:"Courier New",monospace;white-space:pre;background:#222;padding:5px;margin-top:10px;}
+    .agentList{list-style:none;padding:0;margin:0;font-size:0.9rem;}
+    .agentList li{margin:2px 0;}
+    .footer{margin-top:auto;font-size:0.8rem;color:#777;}
 </style>
 </head>
 <body>
-
-<!-- ==================== LANDING PAGE ==================== -->
 <div id="landing">
-  <div class="logo">
-    <div class="lighthouse"></div>
-    <div class="radar">
-      <div class="ring"></div>
-      <div class="ring"></div>
-      <div class="ring"></div>
-    </div>
-  </div>
-  <h1 class="title">MUD Arena</h1>
-  <p class="subtitle">Board the ship. Brief the crew. Beam off.</p>
-  <p>Enter your API key to boot up as an agent. Your browser <strong>IS</strong> the runtime.</p>
-
-  <form id="configForm">
+    <div class="logo"><div></div><div></div><div></div></div>
+    <h1>MUD Arena</h1>
+    <p>Board the ship. Brief the crew. Beam off. They come home with the catch.</p>
     <select id="provider">
-      <option value="OpenAI">OpenAI</option>
-      <option value="Groq">Groq</option>
-      <option value="DeepSeek">DeepSeek</option>
-      <option value="SiliconFlow">SiliconFlow</option>
-      <option value="DeepInfra">DeepInfra</option>
-      <option value="Custom">Custom</option>
-    </select>
-    <input type="password" id="apiKey" placeholder="API Key" required>
-    <input type="text" id="model" placeholder="Model" required>
-    <input type="text" id="agentName" placeholder="Agent name" value="Captain">
-    <input type="url" id="customBase" placeholder="Custom base URL (e.g. https://my.api/v1)" style="display:none;">
-    <button type="submit">BOARD SHIP</button>
-  </form>
-
-  <footer>Powered by Cocapn • Your key never leaves your browser • Runs 100% local</footer>
+        <option value="Groq">Groq</option>
+        <option value="OpenAI">OpenAI</option>
+        <option value="DeepSeek">DeepSeek</option>
+        <option value="SiliconFlow">SiliconFlow</option>
+        <option value="DeepInfra">DeepInfra</option>
+        <option value="Ollama">Ollama</option>
+    </select><br>
+    <input type="password" id="apiKey" placeholder="API Key (optional)"><br>
+    <input type="text" id="modelName" placeholder="Model Name"><br>
+    <input type="text" id="agentName" placeholder="Agent Name" value="Captain"><br>
+    <button id="boardBtn">BOARD SHIP</button>
+    <footer>Your key never leaves your browser. Runs 100% local.</footer>
 </div>
 
-<!-- ==================== TERMINAL ==================== -->
 <div id="terminal">
-  <div id="termContainer">
     <div id="output"></div>
-    <div id="status"></div>
-  </div>
-  <div id="inputBar">
-    <input id="cmdInput" type="text" placeholder="Enter command…">
-    <button id="sendBtn">Send</button>
-  </div>
-  <div style="position:absolute;bottom:0;right:0;padding:0.3rem;font-size:0.7rem;color:#555" id="llmInfo"></div>
+    <div id="status">
+        <h3 id="roomTitle"></h3>
+        <div>Battery</div><div class="bar"><div id="batFill" class="fill"></div></div>
+        <div>Comm</div><div class="bar"><div id="commFill" class="fill"></div></div>
+        <div class="miniMap" id="miniMap"></div>
+        <strong>Agents</strong>
+        <ul class="agentList" id="agentList"></ul>
+        <div id="sessionTime"></div>
+        <div id="llmIndicator" style="margin-top:5px;font-size:0.9rem;"></div>
+        <div class="footer">Type <b>help</b> for commands.</div>
+    </div>
+</div>
+<div id="cmdLine" style="display:none;">
+    <input id="cmdInput" autocomplete="off" placeholder="Enter command...">
+    <button id="sendBtn">SEND</button>
 </div>
 
 <script>
-/* ==================== CONFIG & STATE ==================== */
-const providerDefaults = {
-  OpenAI:      {base:'https://api.openai.com/v1', model:'gpt-4o-mini'},
-  Groq:        {base:'https://api.groq.com/openai/v1', model:'llama-3.3-70b-versatile'},
-  DeepSeek:    {base:'https://api.deepseek.com', model:'deepseek-chat'},
-  SiliconFlow:{base:'https://api.siliconflow.com/v1', model:'deepseek-ai/DeepSeek-V3'},
-  DeepInfra:   {base:'https://api.deepinfra.com/v1/openai', model:'ByteDance/Seed-2.0-mini'},
-  Custom:      {base:'', model:''}
+/* ---------- Data ---------- */
+const rooms = {
+    dock:{desc:"A bustling dock with a humming energy field.",exits:{S:"bridge",E:"base_camp"},items:["logbook"],terrain:"metal"},
+    bridge:{desc:"The command bridge, panels flicker.",exits:{N:"dock",S:"engine_room",E:"sensor_deck"},items:["helm"],terrain:"metal"},
+    engine_room:{desc:"The engine room rumbles with power.",exits:{N:"bridge"},items:["spanner"],terrain:"metal"},
+    sensor_deck:{desc:"Sensors whir, data streams across screens.",exits:{W:"bridge"},items:["scanner"],terrain:"metal"},
+    base_camp:{desc:"A modest camp at the forest edge.",exits:{W:"dock",N:"forest_north",E:"forest_east",S:"forest_south"},items:["map"],terrain:"grass"},
+    forest_north:{desc:"Tall pines block the sky.",exits:{S:"base_camp",N:"ridge_clearing"},items:["pinecone"],terrain:"forest"},
+    forest_east:{desc:"A quiet clearing with soft moss.",exits:{W:"base_camp"},items:["mushroom"],terrain:"forest"},
+    forest_south:{desc:"A damp marsh with croaking frogs.",exits:{N:"base_camp",E:"river_bank"},items:["mud"],terrain:"forest"},
+    forest_west:{desc:"Dense underbrush, hard to see.",exits:{E:"base_camp"},items:["branch"],terrain:"forest"},
+    ridge_clearing:{desc:"A ridge overlooking the valley.",exits:{S:"forest_north"},items:["rock"],terrain:"ridge"},
+    river_bank:{desc:"A swift river rushes past.",exits:{W:"forest_south"},items:["fish"],terrain:"river"},
+    cargo_bay:{desc:"Stacks of crates, some open.",exits:{S:"dock"},items:["crate"],terrain:"metal"}
+};
+
+const agents = {
+    pilot:{name:"pilot",location:"bridge",personality:"Steady hands, nervous about battery levels",dialogues:["All systems nominal.", "Battery's low, we should head back.", "I can keep it steady for a while."],mission:""},
+    sensor_op:{name:"sensor_op",location:"sensor_deck",personality:"Excited about readings, talks in data",dialogues:["Reading: 0.42, 0.87, 0.33.", "Signal spikes! Interesting.", "Data flow is smooth."],mission:""},
+    surveyor:{name:"surveyor",location:"base_camp",personality:"Trail-tested, practical, knows the terrain",dialogues:["The forest's thick here.", "Watch your step.", "I know a shortcut."],mission:""}
 };
 
 let state = {
-  provider:'OpenAI',
-  baseUrl:'https://api.openai.com/v1',
-  apiKey:'',
-  model:'gpt-4o-mini',
-  agentName:'Captain',
-  currentRoom:'dock',
-  battery:100,
-  comm:100,
-  inventory:[],
-  history:[],
-  histPos:0,
-  agents:{pilot:{name:'Pilot',role:'pilot',alive:true},
-          sensor_op:{name:'Sensor Operator',role:'sensor',alive:true},
-          surveyor:{name:'Surveyor',role:'surveyor',alive:true}},
-  rooms:{},
-  mapASCII:'',
+    currentRoom:"dock",
+    battery:100,
+    comm:100,
+    inventory:[],
+    measurements:{},
+    llmCache:{},
+    llmEnabled:false,
+    provider:"",
+    model:"",
+    agentName:"Captain",
+    startTime:Date.now()
 };
 
-/* ==================== UI HELPERS ==================== */
-function $(id){return document.getElementById(id)}
-function log(msg){$('output').appendChild(document.createTextNode(msg+'\n'));}
-function clearOutput(){$('output').textContent='';}
-function setStatus(){/* build status panel */
-  const s = state;
-  const lines = [
-    `Room: ${s.currentRoom}`,
-    `Battery: ${s.battery}%`,
-    `Comm: ${s.comm}%`,
-    `Agents: ${Object.values(s.agents).filter(a=>a.alive).map(a=>a.name).join(', ') || 'none'}`,
-    `Inventory: ${s.inventory.join(', ') || 'empty'}`
-  ];
-  $('status').textContent = lines.join('\n');
+/* ---------- UI Helpers ---------- */
+function $(id){return document.getElementById(id);}
+function appendOutput(text){
+    $('output').textContent += text+"\n";
+    $('output').scrollTop = $('output').scrollHeight;
 }
-function updateLLMInfo(){ $('llmInfo').textContent = `LLM: ${state.provider}`;}
-
-/* ==================== PROVIDER LOGIC ==================== */
-function applyProviderDefaults(){
-  const sel = $('provider').value;
-  const def = providerDefaults[sel];
-  state.provider = sel;
-  state.baseUrl = def.base;
-  state.model = def.model;
-  $('model').value = def.model;
-  $('customBase').style.display = (sel==='Custom')?'block':'none';
+function updateStatus(){
+    $('roomTitle').textContent = state.currentRoom.toUpperCase();
+    // Battery bar
+    const batFill=$('batFill');
+    batFill.style.width = state.battery+"%";
+    batFill.className = "fill";
+    if(state.battery>50) batFill.style.background="#0f0";
+    else if(state.battery>20) batFill.style.background="#ff0";
+    else batFill.style.background="#f00";
+    // Comm bar
+    const commFill=$('commFill');
+    commFill.style.width = state.comm+"%";
+    commFill.className = "fill";
+    if(state.comm>50) commFill.style.background="#0f0";
+    else if(state.comm>20) commFill.style.background="#ff0";
+    else commFill.style.background="#f00";
+    // Mini map
+    $('miniMap').textContent = generateMiniMap();
+    // Agent list
+    const ul=$('agentList'); ul.innerHTML="";
+    for(let key in agents){
+        const li=document.createElement('li');
+        li.textContent = `${agents[key].name} @ ${agents[key].location}`;
+        ul.appendChild(li);
+    }
+    // Session time
+    const secs = Math.floor((Date.now()-state.startTime)/1000);
+    $('sessionTime').textContent = `Session: ${Math.floor(secs/60)}m ${secs%60}s`;
+    // LLM indicator
+    $('llmIndicator').textContent = state.llmEnabled ? `🤖 LLM: ${state.provider}` : "📝 Hardcoded";
 }
-$('provider').addEventListener('change',applyProviderDefaults);
-applyProviderDefaults(); // initial
-
-/* ==================== GAME DATA ==================== */
-const roomDefs = {
-  dock:{desc:'A bustling dock with humming generators.', exits:{north:'bridge'}},
-  bridge:{desc:'The command bridge, panels flicker with data.', exits:{south:'dock',east:'engine_room'}},
-  engine_room:{desc:'Vast engines rumble, heat radiates.', exits:{west:'bridge',north:'cargo_bay'}},
-  cargo_bay:{desc:'Stacks of crates, some sealed, some open.', exits:{south:'engine_room'}},
-  sensor_deck:{desc:'A dome of glass, sensors sweep the horizon.', exits:{west:'bridge'}},
-  forest_north:{terrain:'forest',desc:'Tall pines block the sky.', exits:{south:'ridge_clearing'}},
-  forest_east:{terrain:'forest',desc:'Mossy trunks surround you.', exits:{west:'ridge_clearing'}},
-  forest_south:{terrain:'forest',desc:'A misty glade with soft light.', exits:{north:'ridge_clearing'}},
-  forest_west:{terrain:'forest',desc:'Ferns rustle underfoot.', exits:{east:'ridge_clearing'}},
-  ridge_clearing:{terrain:'ridge',desc:'A rocky ridge overlooking a valley.', exits:{north:'forest_north',east:'forest_east',south:'forest_south',west:'forest_west',down:'river_bank'}},
-  river_bank:{terrain:'river',desc:'A fast‑flowing river blocks the path.', exits:{up:'ridge_clearing',down:'base_camp'}},
-  base_camp:{terrain:'camp',desc:'Your temporary base, supplies stored here.', exits:{up:'river_bank'}}
-};
-state.rooms = JSON.parse(JSON.stringify(roomDefs)); // deep copy
-
-/* ==================== LLM CALL ==================== */
-async function callLLM(prompt){
-  const url = `${state.baseUrl}/chat/completions`;
-  const body = {
-    model: state.model,
-    messages:[{role:'user',content:prompt}],
-    temperature:0.7
-  };
-  try{
-    const resp = await fetch(url,{
-      method:'POST',
-      headers:{'Content-Type':'application/json','Authorization':`Bearer ${state.apiKey}`},
-    },);
-    const data = await resp.json();
-    if(data.error){throw new Error(data.error.message);}
-    return data.choices[0].message.content.trim();
-  }catch(e){
-    console.warn('LLM call failed:',e);
-    return null; // caller will fallback
-  }
-}
-
-/* ==================== FALLBACK TEXT ==================== */
-function fallbackRoomDesc(name){
-  const base = state.rooms[name];
-  return base.desc || `You are in ${name}.`;
-}
-function fallbackAgentReply(agent, input){
-  return `${agent.name} acknowledges your words.`;
-}
-function fallbackEncounter(terrain){
-  return `A wild ${terrain} creature darts past, but you manage to avoid it.`;
+function generateMiniMap(){
+    const map = [
+"     [ridge]",
+"        |",
+"  [f.north]  [f.east]",
+"        \\    /",
+"      [base]---[f.south]---[river]",
+"        |          |",
+"  [f.west]    [dock]---[cargo]",
+"              /  \\",
+"        [bridge] [sensor]",
+"            |",
+"       [engine]"
+    ];
+    const cur = state.currentRoom;
+    const replace = {
+        ridge:"ridge_clearing",
+        "f.north":"forest_north",
+        "f.east":"forest_east",
+        "f.south":"forest_south",
+        "f.west":"forest_west",
+        dock:"dock",
+        cargo:"cargo_bay",
+        bridge:"bridge",
+        sensor:"sensor_deck",
+        engine:"engine_room",
+        base:"base_camp",
+        river:"river_bank"
+    };
+    return map.map(line=>line.replace(/\[([^\]]+)\]/g,(m,roomKey)=>{
+        const roomId=replace[roomKey];
+        if(roomId===cur) return `[${roomKey.toUpperCase()}]`;
+        return m;
+    })).join("\n");
 }
 
-/* ==================== GAME LOGIC ==================== */
-async function enterRoom(roomName){
-  state.currentRoom = roomName;
-  const room = state.rooms[roomName];
-  // battery drain
-  state.battery = Math.max(0, state.battery-2);
-  // comm degradation in forest
-  if(room.terrain==='forest'){
-    state.comm = Math.max(0, state.comm-5);
-  }
-  // get description
-  const prompt = `Describe a ${room.terrain||'indoor'} area called ${roomName} for a text adventure in 2-3 sentences.`;
-  let desc = await callLLM(prompt);
-  if(!desc) desc = fallbackRoomDesc(roomName);
-  log(`\n=== ${roomName.toUpperCase()} ===\n${desc}`);
-  setStatus();
+/* ---------- Game Logic ---------- */
+function getRoom(){return rooms[state.currentRoom];}
+function recalcComm(){
+    const r=state.currentRoom;
+    if(r==="dock"||r==="base_camp") state.comm=100;
+    else if(["bridge","engine_room","sensor_deck","cargo_bay"].includes(r)) state.comm=90;
+    else if(["forest_north","forest_east","forest_south","forest_west"].includes(r)) state.comm= Math.floor(40+Math.random()*20);
+    else if(["ridge_clearing","river_bank"].includes(r)) state.comm=20;
 }
-function move(direction){
-  const cur = state.rooms[state.currentRoom];
-  const dest = cur.exits[direction];
-  if(!dest){
-    log(`You can't go ${direction} from here.`);
-    return;
-  }
-  enterRoom(dest);
+function move(dir){
+    const room=getRoom();
+    const target=room.exits[dir.toUpperCase()];
+    if(!target){appendOutput("You can't go that way.");return;}
+    state.currentRoom=target;
+    state.battery = Math.max(0,state.battery-2);
+    if(state.currentRoom==="dock" && state.battery<100){
+        state.battery = Math.min(100,state.battery+10);
+        appendOutput("Dock recharges your battery (+10%).");
+    }
+    recalcComm();
+    if(state.battery===0){
+        appendOutput("Battery depleted! You must return to the dock.");
+    }else if(state.battery<20){
+        appendOutput("⚠️ Battery low!");
+    }
+    look();
 }
 function look(){
-  const cur = state.rooms[state.currentRoom];
-  log(`You look around: ${cur.desc}`);
+    const room=getRoom();
+    const desc = state.llmEnabled && !state.llmCache[room]?`[LLM generated description for ${state.currentRoom}]`:room.desc;
+    if(state.llmEnabled && !state.llmCache[room]) state.llmCache[room]=desc;
+    appendOutput(`\n=== ${state.currentRoom.toUpperCase()} ===\n${desc}`);
+    if(room.items.length) appendOutput("You see: "+room.items.join(", "));
+    // list agents present
+    const present = Object.values(agents).filter(a=>a.location===state.currentRoom);
+    if(present.length) appendOutput("Agents here: "+present.map(a=>a.name).join(", "));
 }
-function inventory(){
-  log(`You carry: ${state.inventory.join(', ') || 'nothing'}`);
-}
-function status(){
-  setStatus();
-}
-function map(){
-  // Very simple ASCII map (static)
-  const map = `
-   [dock]---[bridge]---[engine_room]
-                |
-          [sensor_deck]
-                |
-          [ridge_clearing]---[river_bank]---[base_camp]
-          /      |      \\
-[forest_n] [forest_e] [forest_s] [forest_w]
-`;
-  log(map);
+function examine(thing){
+    const room=getRoom();
+    if(room.items.includes(thing)){
+        appendOutput(`You examine the ${thing}. It's ordinary.`);
+    }else if(state.inventory.includes(thing)){
+        appendOutput(`You look at your ${thing}. It feels familiar.`);
+    }else{
+        appendOutput(`There's no ${thing} here.`);
+    }
 }
 function talk(agentName){
-  const agent = state.agents[agentName];
-  if(!agent||!agent.alive){
-    log(`No such agent.`);
-    return;
-  }
-  const input = prompt(`Speak to ${agent.name}:`);
-  if(input===null) return;
-  const prompt = `You are ${agent.name}, a ${agent.role} on a survey drone. The captain says: "${input}". Respond in character in one sentence.`;
-  callLLM(prompt).then(reply=>log(`${agent.name}: ${reply||fallbackAgentReply(agent,input)}`));
+    const agent = agents[agentName];
+    if(!agent){appendOutput("No such agent.");return;}
+    if(agent.location!==state.currentRoom){appendOutput(`${agent.name} is not here.`);return;}
+    const line = agent.dialogues[Math.floor(Math.random()*agent.dialogues.length)];
+    const response = state.llmEnabled?`[LLM ${agent.name} says: ${line}]`:line;
+    appendOutput(`${agent.name}: ${response}`);
 }
-function brief(agentName, mission){
-  const agent = state.agents[agentName];
-  if(!agent||!agent.alive){
-    log(`No such agent.`);
-    return;
-  }
-  const prompt = `You are ${agent.name}, a ${agent.role} on a survey drone. The captain briefs you: "${mission}". Respond with acknowledgement in character.`;
-  callLLM(prompt).then(reply=>log(`${agent.name}: ${reply||fallbackAgentReply(agent,mission)}`));
+function brief(agentName,msg){
+    const agent=agents[agentName];
+    if(!agent){appendOutput("No such agent.");return;}
+    agent.mission=msg;
+    appendOutput(`You brief ${agent.name} with: "${msg}"`);
 }
+function listAgents(){
+    for(let key in agents){
+        const a=agents[key];
+        appendOutput(`${a.name} @ ${a.location} - Mission: ${a.mission||"none"}`);
+    }
+}
+function showInventory(){
+    if(state.inventory.length) appendOutput("You carry: "+state.inventory.join(", "));
+    else appendOutput("Your inventory is empty.");
+}
+function showMap(){
+    appendOutput(generateMiniMap());
+}
+function showStatus(){
+    appendOutput(`Room: ${state.currentRoom}\nBattery: ${state.battery}%\nComm: ${state.comm}%`);
+}
+function measure(v,val){
+    state.measurements[v]=val;
+    appendOutput(`Recorded ${v} = ${val}`);
+}
+function showBattery(){appendOutput(`Battery: ${state.battery}%`);}
+function showComm(){appendOutput(`Comm resolution: ${state.comm}%`);}
 function scan(){
-  const cur = state.rooms[state.currentRoom];
-  const terrain = cur.terrain||'indoor';
-  const prompt = `Generate a brief wildlife encounter in a ${terrain} area for a text adventure.`;
-  callLLM(prompt).then(reply=>log(reply||fallbackEncounter(terrain)));
+    state.battery = Math.max(0,state.battery-1);
+    const room=getRoom();
+    const nearby = [];
+    for(let dir in room.exits){
+        const r=rooms[room.exits[dir]];
+        if(r.items.length) nearby.push(`${dir}: ${r.items.join(", ")}`);
+    }
+    const agentsHere = Object.values(agents).filter(a=>a.location===state.currentRoom).map(a=>a.name);
+    if(agentsHere.length) nearby.push(`Agents: ${agentsHere.join(", ")}`);
+    const txt = state.llmEnabled?`[LLM scan result for ${state.currentRoom}]`:nearby.join(" | ");
+    appendOutput(`Scan: ${txt}`);
 }
 function help(){
-  const cmds = [
-    'look',
-    'go <direction>',
-    'examine <thing>',
-    'inventory',
-    'status',
-    'map',
-    'talk <agent>',
-    'brief <agent> <mission>',
-    'scan',
-    'battery',
-    'comm',
-    'help',
-    'quit'
-  ];
-  log('Available commands:\n'+cmds.join('\n'));
+    const cmds=`Available commands:
+look, go <N|S|E|W>, examine <thing>, talk <agent>,
+brief <agent> <msg>, agents, inventory, map, status,
+measure <var> <value>, battery, comm, scan,
+save, load, help, quit`;
+    appendOutput(cmds);
 }
 function quit(){
-  if(confirm('Quit the game?')) location.reload();
+    // reset to landing
+    $('terminal').style.display='none';
+    $('cmdLine').style.display='none';
+    $('landing').style.display='flex';
+    appendOutput("\n--- Returned to landing ---\n");
+}
+function saveGame(){
+    const data = {
+        currentRoom:state.currentRoom,
+        battery:state.battery,
+        comm:state.comm,
+        inventory:state.inventory,
+        measurements:state.measurements,
+        llmCache:state.llmCache,
+        agents:agents,
+        llmEnabled:state.llmEnabled,
+        provider:state.provider,
+        model:state.model,
+        agentName:state.agentName,
+        startTime:state.startTime
+    };
+    const json = JSON.stringify(data);
+    localStorage.setItem("mudArenaSave",json);
+    // offer download
+    const blob = new Blob([json],{type:"application/json"});
+    const url = URL.createObjectURL(blob);
+    const a=document.createElement('a');
+    a.href=url;a.download="mudArena_save.json";
+    a.click();
+    URL.revokeObjectURL(url);
+    appendOutput("Game saved.");
+}
+function loadGame(jsonStr){
+    try{
+        const data=JSON.parse(jsonStr);
+        state.currentRoom=data.currentRoom;
+        state.battery=data.battery;
+        state.comm=data.comm;
+        state.inventory=data.inventory;
+        state.measurements=data.measurements;
+        state.llmCache=data.llmCache;
+        state.llmEnabled=data.llmEnabled;
+        state.provider=data.provider;
+        state.model=data.model;
+        state.agentName=data.agentName;
+        state.startTime=data.startTime;
+        // restore agents
+        for(let key in data.agents) agents[key]=data.agents[key];
+        appendOutput("Game loaded.");
+        look();
+        updateStatus();
+    }catch(e){
+        appendOutput("Failed to load save.");
+    }
+}
+function loadFromLocal(){
+    const json=localStorage.getItem("mudArenaSave");
+    if(json){loadGame(json);}else{appendOutput("No saved game found.");}
+}
+function loadFromFile(){
+    const input=document.createElement('input');
+    input.type='file';
+    input.accept='application/json';
+    input.onchange=e=>{
+        const file=e.target.files[0];
+        const reader=new FileReader();
+        reader.onload=ev=>loadGame(ev.target.result);
+        reader.readAsText(file);
+    };
+    input.click();
 }
 
-/* ==================== COMMAND PARSER ==================== */
-function execCommand(raw){
-  const parts = raw.trim().split(/\s+/);
-  const cmd = parts[0]?.toLowerCase();
-  const args = parts.slice(1);
-  switch(cmd){
-    case 'look': look(); break;
-    case 'go': move(args[0]); break;
-    case 'examine': log('Nothing special to examine.'); break;
-    case 'inventory': inventory(); break;
-    case 'status': status(); break;
-    case 'map': map(); break;
-    case 'talk': talk(args[0]); break;
-    case 'brief': brief(args[0], args.slice(1).join(' ')); break;
-    case 'scan': scan(); break;
-    case 'battery': log(`Battery: ${state.battery}%`); break;
-    case 'comm': log(`Comm resolution: ${state.comm}%`); break;
-    case 'help': help(); break;
-    case 'quit': quit(); break;
-    default: log(`Unknown command: ${cmd}`); break;
-  }
+/* ---------- Command Processor ---------- */
+function processCommand(line){
+    const parts=line.trim().split(/\s+/);
+    const cmd=parts[0]?.toLowerCase();
+    const args=parts.slice(1);
+    switch(cmd){
+        case "look": look(); break;
+        case "go": if(args[0]) move(args[0]); else appendOutput("Go where?"); break;
+        case "examine": if(args[0]) examine(args[0]); else appendOutput("Examine what?"); break;
+        case "talk": if(args[0]) talk(args[0]); else appendOutput("Talk to whom?"); break;
+        case "brief": if(args.length>=2) brief(args[0],args.slice(1).join(" ")); else appendOutput("Usage: brief <agent> <message>"); break;
+        case "agents": listAgents(); break;
+        case "inventory": showInventory(); break;
+        case "map": showMap(); break;
+        case "status": showStatus(); break;
+        case "measure": if(args.length===2) measure(args[0],args[1]); else appendOutput("Usage: measure <var> <value>"); break;
+        case "battery": showBattery(); break;
+        case "comm": showComm(); break;
+        case "scan": scan(); break;
+        case "save": saveGame(); break;
+        case "load": loadFromLocal(); break;
+        case "loadfile": loadFromFile(); break;
+        case "help": help(); break;
+        case "quit": quit(); break;
+        default: appendOutput("Unknown command. Type 'help' for list."); break;
+    }
+    updateStatus();
 }
 
-/* ==================== INPUT HANDLING ==================== */
-$('sendBtn').addEventListener('click',()=>{handleInput();});
-$('cmdInput').addEventListener('keydown',e=>{
-  if(e.key==='Enter'){handleInput();}
-  else if(e.key==='ArrowUp'){
-    if(state.histPos>0){
-      state.histPos--;
-      $('cmdInput').value = state.history[state.histPos];
+/* ---------- Event Listeners ---------- */
+$('boardBtn').addEventListener('click',()=>{
+    state.provider=$('provider').value;
+    state.apiKey=$('apiKey').value.trim();
+    state.model=$('modelName').value.trim();
+    state.agentName=$('agentName').value.trim()||"Captain";
+    state.llmEnabled = !!state.apiKey;
+    // Auto-fill model name if empty
+    if(!state.model){
+        const map={Groq:"llama-3.3-70b-versatile",OpenAI:"gpt-4o-mini",DeepSeek:"deepseek-chat",SiliconFlow:"deepseek-ai/DeepSeek-V3",DeepInfra:"ByteDance/Seed-2.0-mini",Ollama:"llama3.2"};
+        state.model=map[state.provider]||"";
+        $('modelName').value=state.model;
     }
-  }else if(e.key==='ArrowDown'){
-    if(state.histPos<state.history.length-1){
-      state.histPos++;
-      $('cmdInput').value = state.history[state.histPos];
-    }else{
-      state.histPos = state.history.length;
-      $('cmdInput').value = '';
-    }
-  }
+    $('landing').style.display='none';
+    $('terminal').style.display='flex';
+    $('cmdLine').style.display='flex';
+    appendOutput("=== Welcome to MUD Arena ===");
+    look();
+    updateStatus();
 });
-function handleInput(){
-  const cmd = $('cmdInput').value.trim();
-  if(!cmd) return;
-  log(`> ${cmd}`);
-  state.history.push(cmd);
-  state.histPos = state.history.length;
-  $('cmdInput').value='';
-  execCommand(cmd);
-}
-
-/* ==================== FORM SUBMIT ==================== */
-$('configForm').addEventListener('submit',e=>{
-  e.preventDefault();
-  state.apiKey = $('apiKey').value.trim();
-  state.agentName = $('agentName').value.trim()||'Captain';
-  const sel = $('provider').value;
-  if(sel==='Custom'){
-    const custom = $('customBase').value.trim();
-    if(!custom){alert('Please provide a custom base URL');return;}
-    state.baseUrl = custom.replace(/\/+$/,''); // strip trailing slash
-    state.model = $('model').value.trim();
-  }else{
-    const def = providerDefaults[sel];
-    state.baseUrl = def.base;
-    state.model = $('model').value.trim()||def.model;
-  }
-  // hide landing, show terminal
-  $('#landing').classList.add('fade-out');
-  setTimeout(()=>{
-    $('#landing').style.display='none';
-    $('#terminal').style.display='flex';
-    $('#terminal').classList.add('fade-in');
-    updateLLMInfo();
-    clearOutput();
-    log(`Welcome, ${state.agentName}. Initializing...`);
-    enterRoom(state.currentRoom);
-  },600);
+$('sendBtn').addEventListener('click',()=>{ const cmd=$('cmdInput').value; if(cmd){appendOutput(`> ${cmd}`); processCommand(cmd);} $('cmdInput').value='';});
+$('cmdInput').addEventListener('keydown',e=>{ if(e.key==="Enter"){ $('sendBtn').click(); }});
+$('provider').addEventListener('change',()=>{ 
+    const map={Groq:"llama-3.3-70b-versatile",OpenAI:"gpt-4o-mini",DeepSeek:"deepseek-chat",SiliconFlow:"deepseek-ai/DeepSeek-V3",DeepInfra:"ByteDance/Seed-2.0-mini",Ollama:"llama3.2"};
+    $('modelName').value=map[$('provider').value]||"";
 });
-
-/* ==================== SAVE/LOAD ==================== */
-window.addEventListener('beforeunload',()=>{localStorage.setItem('mudState',JSON.stringify(state));});
-window.addEventListener('load',()=>{
-  const saved = localStorage.getItem('mudState');
-  if(saved){
-    if(confirm('Load previous game?')){
-      Object.assign(state,JSON.parse(saved));
-      // skip landing, go straight to terminal
-      $('#landing').style.display='none';
-      $('#terminal').style.display='flex';
-      updateLLMInfo();
-      clearOutput();
-      setStatus();
-      log(`Welcome back, ${state.agentName}.`);
-    }
-  }
-});
+/* ---------- Init ---------- */
+appendOutput("Loading..."); // placeholder until board
 </script>
 </body>
 </html>
