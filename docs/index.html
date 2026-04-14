@@ -6,582 +6,427 @@
 <title>MUD Arena — Board the Ship</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
-:root{--bg:#0a0e17;--fg:#c8d6e5;--accent:#00d2ff;--accent2:#7c3aed;--warn:#f59e0b;--danger:#ef4444;--card:#111827;--border:#1e293b}
+:root{--bg:#080c14;--fg:#d4dde8;--accent:#00d2ff;--accent2:#8b5cf6;--warn:#f59e0b;--danger:#ef4444;--success:#22c55e;--card:#0f1623;--border:#1a2744}
 body{font-family:'Courier New',monospace;background:var(--bg);color:var(--fg);height:100vh;overflow:hidden}
-/* LANDING PAGE */
-#landing{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100vh;text-align:center;padding:2rem}
-#landing h1{font-size:3rem;margin-bottom:0.5rem;background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
-#landing .subtitle{color:#64748b;margin-bottom:2rem;font-size:1.1rem}
-.radar{width:120px;height:120px;border-radius:50%;border:2px solid var(--accent);position:relative;margin:0 auto 2rem;animation:pulse 3s ease-in-out infinite}
-.radar::before{content:'';position:absolute;top:50%;left:50%;width:8px;height:8px;background:var(--accent);border-radius:50%;transform:translate(-50%,-50%)}
-.radar::after{content:'';position:absolute;top:10%;left:10%;right:10%;bottom:10%;border-radius:50%;border:1px solid rgba(0,210,255,0.3)}
-@keyframes pulse{0%,100%{box-shadow:0 0 20px rgba(0,210,255,0.2)}50%{box-shadow:0 0 40px rgba(0,210,255,0.4)}}
-.form-group{margin:0.5rem 0;text-align:left;width:320px}
-.form-group label{display:block;color:#64748b;font-size:0.8rem;margin-bottom:0.2rem}
-.form-group select,.form-group input{width:100%;padding:0.6rem;background:var(--card);border:1px solid var(--border);border-radius:4px;color:var(--fg);font-family:inherit;font-size:0.9rem}
-.form-group select:focus,.form-group input:focus{outline:none;border-color:var(--accent)}
-#board-btn{margin-top:1.5rem;padding:0.8rem 3rem;background:linear-gradient(135deg,var(--accent),var(--accent2));border:none;border-radius:4px;color:#fff;font-family:inherit;font-size:1rem;cursor:pointer;transition:transform 0.2s,box-shadow 0.2s}
-#board-btn:hover{transform:scale(1.05);box-shadow:0 0 30px rgba(0,210,255,0.3)}
-.footer{position:fixed;bottom:1rem;color:#334155;font-size:0.7rem}
-/* MUD TERMINAL */
-#game{display:none;height:100vh;grid-template-columns:1fr 280px;grid-template-rows:auto 1fr auto}
-#game.active{display:grid}
-#topbar{grid-column:1/-1;background:var(--card);padding:0.4rem 1rem;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;font-size:0.8rem}
-#topbar .room-name{color:var(--accent);font-weight:bold}
-#output{grid-column:1;overflow-y:auto;padding:1rem;font-size:0.85rem;line-height:1.6;scroll-behavior:smooth}
-#output .desc{color:#94a3b8;margin:0.5rem 0}
-#output .agent-says{color:var(--accent);margin:0.3rem 0;padding-left:1rem;border-left:2px solid var(--accent)}
-#output .system{color:#475569;font-style:italic;margin:0.3rem 0}
-#output .alert{color:var(--warn);font-weight:bold}
-#output .danger{color:var(--danger);font-weight:bold}
-#output .item{color:#22c55e}
-#output .divider{border-top:1px solid var(--border);margin:0.5rem 0}
-#sidebar{grid-column:2;background:var(--card);border-left:1px solid var(--border);padding:1rem;overflow-y:auto;font-size:0.75rem}
-#sidebar h3{color:var(--accent);margin:0.8rem 0 0.3rem;font-size:0.8rem}
-#sidebar h3:first-child{margin-top:0}
-.bar{height:6px;background:var(--border);border-radius:3px;margin:0.2rem 0 0.5rem;overflow:hidden}
-.bar-fill{height:100%;border-radius:3px;transition:width 0.3s}
-.bar-battery .bar-fill{background:#22c55e}
-.bar-battery.low .bar-fill{background:var(--danger)}
-.bar-comm .bar-fill{background:var(--accent)}
-.bar-comm.low .bar-fill{background:var(--warn)}
-.agent-entry{padding:0.3rem 0;border-bottom:1px solid var(--border)}
-.agent-entry .name{color:var(--accent2)}
-.agent-entry .loc{color:#475569}
-#input-area{grid-column:1/-1;display:flex;border-top:1px solid var(--border);background:var(--card)}
-#cmd-input{flex:1;padding:0.7rem 1rem;background:transparent;border:none;color:var(--fg);font-family:inherit;font-size:0.9rem}
-#cmd-input:focus{outline:none}
-#cmd-input::placeholder{color:#334155}
-.minimap{font-size:0.6rem;line-height:1.2;color:#475569;white-space:pre;margin:0.3rem 0}
-.minimap .current{color:var(--accent);font-weight:bold}
-#llm-badge{display:inline-block;padding:0.1rem 0.4rem;border-radius:3px;font-size:0.65rem;background:var(--card);border:1px solid var(--border);color:#475569}
-/* Mobile */
-@media(max-width:768px){
-  #game.active{grid-template-columns:1fr;grid-template-rows:auto 1fr auto auto}
-  #sidebar{grid-column:1;max-height:150px;border-left:none;border-top:1px solid var(--border)}
-  .form-group{width:280px}
-  #landing h1{font-size:2rem}
-}
+#landing{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100vh;text-align:center;padding:2rem;background:radial-gradient(ellipse at center,#0d1a2d 0%,#080c14 70%)}
+#landing h1{font-size:3.5rem;margin-bottom:.3rem;background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;text-shadow:0 0 40px rgba(0,210,255,.2)}
+.subtitle{color:#4a6382;margin-bottom:2rem;font-size:1rem;line-height:1.5;max-width:400px}
+.radar{width:100px;height:100px;border-radius:50%;border:2px solid var(--accent);position:relative;margin:0 auto 1.5rem;animation:pulse 3s infinite}
+.radar::before{content:'';position:absolute;inset:20%;border-radius:50%;border:1px solid rgba(0,210,255,.3)}
+.radar::after{content:'';position:absolute;top:50%;left:50%;width:6px;height:6px;background:var(--accent);border-radius:50%;transform:translate(-50%,-50%);box-shadow:0 0 10px var(--accent)}
+@keyframes pulse{0%,100%{box-shadow:0 0 20px rgba(0,210,255,.15)}50%{box-shadow:0 0 40px rgba(0,210,255,.3)}}
+.fg{margin:.4rem 0;text-align:left;width:300px}
+.fg label{display:block;color:#4a6382;font-size:.75rem;margin-bottom:.15rem}
+.fg select,.fg input{width:100%;padding:.5rem;background:var(--card);border:1px solid var(--border);border-radius:3px;color:var(--fg);font-family:inherit;font-size:.85rem}
+.fg select:focus,.fg input:focus{outline:none;border-color:var(--accent)}
+#board{margin-top:1.2rem;padding:.7rem 2.5rem;background:linear-gradient(135deg,var(--accent),var(--accent2));border:none;border-radius:3px;color:#fff;font-family:inherit;font-size:.95rem;cursor:pointer;letter-spacing:.5px;transition:all .2s}
+#board:hover{transform:scale(1.03);box-shadow:0 0 25px rgba(0,210,255,.25)}
+.foot{position:fixed;bottom:.8rem;color:#1e3050;font-size:.65rem}
+#game{display:none;height:100vh;grid-template-columns:1fr 260px;grid-template-rows:auto 1fr auto}
+#game.on{display:grid}
+#bar{grid-column:1/-1;background:var(--card);padding:.3rem .8rem;border-bottom:1px solid var(--border);display:flex;gap:1rem;align-items:center;font-size:.75rem}
+#bar .rn{color:var(--accent);font-weight:bold}
+#bar .badge{padding:.1rem .3rem;border-radius:2px;font-size:.6rem;border:1px solid var(--border);color:#4a6382}
+#out{grid-column:1;overflow-y:auto;padding:.8rem;font-size:.82rem;line-height:1.55;scroll-behavior:smooth}
+.d{color:#7a8da0;margin:.3rem 0}.a{color:var(--accent);margin:.2rem 0;padding-left:.8rem;border-left:2px solid var(--accent)}
+.s{color:#3d5270;font-style:italic;margin:.2rem 0}.w{color:var(--warn);font-weight:bold}
+.err{color:var(--danger);font-weight:bold}.ok{color:var(--success)}
+.item{color:#34d399}.enc{color:#fb923c;font-weight:bold}.hr{border-top:1px solid var(--border);margin:.4rem 0}
+.art{color:#2a3f5f;font-size:.7rem;white-space:pre;margin:.2rem 0;line-height:1.1}
+#side{grid-column:2;background:var(--card);border-left:1px solid var(--border);padding:.8rem;overflow-y:auto;font-size:.7rem}
+#side h3{color:var(--accent);margin:.6rem 0 .2rem;font-size:.75rem}#side h3:first-child{margin-top:0}
+.mbar{height:5px;background:var(--border);border-radius:2px;margin:.15rem 0 .4rem;overflow:hidden}
+.mbf{height:100%;border-radius:2px;transition:width .3s}
+.mb-g .mbf{background:var(--success)}.mb-y .mbf{background:var(--warn)}.mb-r .mbf{background:var(--danger)}
+.mb-c .mbf{background:var(--accent)}.mb-cw .mbf{background:var(--warn)}
+.ae{padding:.2rem 0;border-bottom:1px solid var(--border)}.ae .n{color:var(--accent2)}.ae .l{color:#3d5270;font-size:.6rem}
+#inp{grid-column:1/-1;display:flex;border-top:1px solid var(--border);background:var(--card)}
+#ci{flex:1;padding:.6rem .8rem;background:transparent;border:none;color:var(--fg);font-family:inherit;font-size:.85rem}
+#ci:focus{outline:none}#ci::placeholder{color:#1e3050}
+.tut{background:#0d1a2d;border:1px solid var(--accent);border-radius:3px;padding:.5rem .8rem;margin:.4rem 0;color:var(--accent);font-size:.8rem}
+.scr{color:var(--success);font-weight:bold;font-size:.9rem}
+@media(max-width:768px){#game.on{grid-template-columns:1fr;grid-template-rows:auto 1fr auto auto}#side{grid-column:1;max-height:120px;border-left:none;border-top:1px solid var(--border)}.fg{width:260px}#landing h1{font-size:2.2rem}}
 </style>
 </head>
 <body>
-
-<!-- LANDING -->
 <div id="landing">
-  <div class="radar"></div>
-  <h1>MUD Arena</h1>
-  <p class="subtitle">Board the ship. Brief the crew. Beam off.<br>They come home with the catch.</p>
-  <div class="form-group">
-    <label>Provider</label>
-    <select id="provider" onchange="setProvider()">
-      <option value="groq">Groq (free, fast)</option>
-      <option value="openai">OpenAI</option>
-      <option value="deepseek">DeepSeek</option>
-      <option value="siliconflow">SiliconFlow</option>
-      <option value="deepinfra">DeepInfra</option>
-      <option value="ollama">Ollama (local)</option>
-    </select>
-  </div>
-  <div class="form-group">
-    <label>API Key</label>
-    <input type="password" id="apikey" placeholder="Paste your key...">
-  </div>
-  <div class="form-group">
-    <label>Model</label>
-    <input type="text" id="model" value="llama-3.3-70b-versatile">
-  </div>
-  <div class="form-group">
-    <label>Your Name</label>
-    <input type="text" id="playername" value="Captain" maxlength="20">
-  </div>
-  <button id="board-btn" onclick="boardShip()">BOARD SHIP</button>
-  <p class="footer">Your key never leaves your browser · Runs 100% local · Powered by Cocapn</p>
+<div class="radar"></div>
+<h1>MUD Arena</h1>
+<p class="subtitle">Board the survey vessel. Brief your crew. Explore the wild coast of Alaska.<br>Collect samples. Watch your battery. Come home with the catch.</p>
+<div class="fg"><label>Provider</label><select id="prov" onchange="setP()"><option value="groq">Groq (free, fast)</option><option value="openai">OpenAI</option><option value="deepseek">DeepSeek</option><option value="siliconflow">SiliconFlow</option><option value="deepinfra">DeepInfra</option><option value="ollama">Ollama (local)</option></select></div>
+<div class="fg"><label>API Key</label><input type="password" id="key" placeholder="Paste your key..."></div>
+<div class="fg"><label>Model</label><input id="mdl" value="llama-3.3-70b-versatile"></div>
+<div class="fg"><label>Captain Name</label><input id="nm" value="Captain" maxlength="16"></div>
+<button id="board" onclick="boot()">BOARD SHIP</button>
+<p class="foot">Your key never leaves your browser · Save your session when you leave · Powered by Cocapn</p>
 </div>
-
-<!-- GAME -->
 <div id="game">
-  <div id="topbar">
-    <span><span class="room-name" id="room-name">Dock</span> — <span id="terrain-type">dock</span></span>
-    <span id="llm-badge">📝 Hardcoded</span>
-    <span id="turn-count">Turn 0</span>
-  </div>
-  <div id="output"></div>
-  <div id="sidebar">
-    <h3>Status</h3>
-    <div>Battery: <span id="battery-val">100%</span></div>
-    <div class="bar bar-battery"><div class="bar-fill" id="battery-bar" style="width:100%"></div></div>
-    <div>Comm: <span id="comm-val">100%</span></div>
-    <div class="bar bar-comm"><div class="bar-fill" id="comm-bar" style="width:100%"></div></div>
-    <h3>Map</h3>
-    <div class="minimap" id="minimap"></div>
-    <h3>Agents</h3>
-    <div id="agent-list"></div>
-    <h3>Inventory</h3>
-    <div id="inventory-list"><span style="color:#475569">Empty</span></div>
-  </div>
-  <div id="input-area">
-    <input type="text" id="cmd-input" placeholder="Type a command... (try 'help')" autofocus>
-  </div>
+<div id="bar"><span class="rn" id="rn">Dock</span><span id="ter">dock</span><span class="badge" id="llmb">📝 Offline</span><span id="tn">Turn 0</span><span id="dn">☀️ Day</span><span class="scr" id="sc">Score: 0</span></div>
+<div id="out"></div>
+<div id="side">
+<h3>Battery</h3><div id="bv">100%</div><div class="mbar mb-g"><div class="mbf" id="bb" style="width:100%"></div></div>
+<h3>Comm Signal</h3><div id="cv">100%</div><div class="mbar mb-c"><div class="mbf" id="cb" style="width:100%"></div></div>
+<h3>Crew</h3><div id="al"></div>
+<h3>Inventory <span id="ic">(0)</span></h3><div id="il"><span style="color:#3d5270">Empty</span></div>
+<h3>Score</h3><div id="sl">Samples: 0 · Rooms: 1 · Fish: 0</div>
 </div>
-
+<div id="inp"><input id="ci" placeholder="> type a command..." autofocus></div>
+</div>
 <script>
-// ===== PROVIDER CONFIG =====
-const PROVIDERS = {
-  groq: {url:'https://api.groq.com/openai/v1', model:'llama-3.3-70b-versatile'},
-  openai: {url:'https://api.openai.com/v1', model:'gpt-4o-mini'},
-  deepseek: {url:'https://api.deepseek.com', model:'deepseek-chat'},
-  siliconflow: {url:'https://api.siliconflow.com/v1', model:'deepseek-ai/DeepSeek-V3'},
-  deepinfra: {url:'https://api.deepinfra.com/v1/openai', model:'ByteDance/Seed-2.0-mini'},
-  ollama: {url:'http://localhost:11434/v1', model:'llama3.2'},
-};
-function setProvider(){
-  const p=document.getElementById('provider').value;
-  document.getElementById('model').value=PROVIDERS[p].model;
-  document.getElementById('apikey').placeholder=p==='ollama'?'No key needed (local)':'Paste your key...';
-}
+const PV={groq:{u:'https://api.groq.com/openai/v1',m:'llama-3.3-70b-versatile'},openai:{u:'https://api.openai.com/v1',m:'gpt-4o-mini'},deepseek:{u:'https://api.deepseek.com',m:'deepseek-chat'},siliconflow:{u:'https://api.siliconflow.com/v1',m:'deepseek-ai/DeepSeek-V3'},deepinfra:{u:'https://api.deepinfra.com/v1/openai',m:'ByteDance/Seed-2.0-mini'},ollama:{u:'http://localhost:11434/v1',m:'llama3.2'}};
+function setP(){const p=document.getElementById('prov').value;document.getElementById('mdl').value=PV[p].m;document.getElementById('key').placeholder=p==='ollama'?'No key needed':'Paste your key...'}
 
-// ===== WORLD DATA =====
-const ROOMS = {
-  dock:{name:'Dock',terrain:'dock',desc:'The USS Surveyor bobs gently at the wooden dock. Salt air and diesel. A ramp leads up to the bridge to the north. Base camp sprawls east along the shore.', exits:{N:'bridge',E:'base_camp',S:'cargo_bay'},comm:1.0,items:['docking_rope','life_jacket']},
-  bridge:{name:'Bridge',terrain:'bridge',desc:'The wheelhouse hums with electronics. Navigation screens glow green. The pilot\'s chair faces a panoramic window showing the coastline. Engine room below, sensor deck to the east.',exits:{N:'engine_room',S:'dock',E:'sensor_deck'},comm:0.9,items:['charts','radio']},
-  engine_room:{name:'Engine Room',terrain:'engine',desc:'Heat and the deep thrum of the diesel. Pipes run everywhere. Gauges show engine temp, fuel level, oil pressure. Smells like working machinery.',exits:{S:'bridge'},comm:0.85,items:['wrench','fuel_gauge']},
-  sensor_deck:{name:'Sensor Deck',terrain:'sensor',desc:'Antenna arrays and camera mounts point in every direction. The sensor_op has screens showing thermal, LiDAR, and acoustic feeds. Amazing view of the forest from up here.',exits:{W:'bridge'},comm:0.9,items:['binoculars','sensor_log']},
-  base_camp:{name:'Base Camp',terrain:'base',desc:'A cluster of weathered tents and supply crates. The surveyor has mapped routes pinned to a cork board. Trails lead into the forest in three directions. The dock lies west.',exits:{W:'dock',N:'forest_north',E:'forest_east',S:'forest_south'},comm:0.8,items:['trail_map','first_aid_kit']},
-  forest_north:{name:'North Forest',terrain:'forest',desc:'Towering old-growth cedar and spruce. Moss carpets everything. Light filters through in green shafts. The trees are so thick you can barely see 50 meters. Something rustled in the undergrowth.',exits:{S:'base_camp',N:'ridge_clearing'},comm:0.4,items:['cedar_sample','feather']},
-  forest_east:{name:'East Forest',terrain:'forest',desc:'Younger second-growth forest. Birch and alder compete for light. A creek runs through here — the water is cold and clear. Good signs of wildlife activity.',exits:{W:'base_camp'},comm:0.45,items:['birch_bark','creek_water']},
-  forest_south:{name:'South Forest',terrain:'forest',desc:'Dense undergrowth — devil\'s club and salmonberry thickets make progress slow. The ground is boggy. Strange mushrooms grow on fallen logs. The river bank is somewhere east.',exits:{N:'base_camp',E:'river_bank'},comm:0.4,items:['mushroom_sample','devil_club']},
-  forest_west:{name:'West Forest',terrain:'forest',desc:'Steep terrain climbing toward the ridge. Ancient Douglas fir trees stand like columns. A bear has marked this tree — fresh claw marks about 8 feet up. The forest is watching you.',exits:{E:'base_camp'},comm:0.5,items:['fir_cone','bear_marks_photo']},
-  ridge_clearing:{name:'Ridge Clearing',terrain:'ridge',desc:'A wind-swept clearing at the top of the ridge. Incredible panoramic view — you can see the coastline, the forest canopy stretching for miles, and snow-capped peaks beyond. Signal is weak up here but the view is worth it.',exits:{S:'forest_north'},comm:0.2,items:['eagle_feather','rock_sample']},
-  river_bank:{name:'River Bank',terrain:'water',desc:'A wide glacial river rushes by, milky blue with silt. Salmon are running — you can see them in the shallows. Bear tracks in the mud, fresh. This is wild country. Signal barely reaches here.',exits:{W:'forest_south'},comm:0.15,items:['river_stone','salmon_scale']},
-  cargo_bay:{name:'Cargo Bay',terrain:'cargo',desc:'The ship\'s hold stores equipment and samples. Crates are labeled with care. A charging station for the drone batteries hums in the corner. Everything is organized for a quick deployment.',exits:{N:'dock'},comm:0.95,items:['battery_pack','sample_container']},
+// WORLD DATA - 15 rooms including agent-built ones
+const RM={
+dock:{n:'Dock',t:'dock',d:'Salt air and diesel. The USS Surveyor rides at anchor, lines creaking. A ramp leads north to the bridge. Supply crates line the east trail to base camp.',x:{N:'bridge',E:'base_camp',S:'cargo_bay'},c:1,i:['docking_rope','life_jacket'],a:`  |    ___    |
+  |   /   \\   |
+  |  | DOCK|  |
+  |   \\___/   |
+  | ~~  ~  ~~ |`},
+bridge:{n:'Bridge',t:'bridge',d:'Navigation screens cast green light. The pilot\'s chair faces a cracked windshield showing grey coastline. Engine room below, sensor deck east. The radio crackles with static.',x:{N:'engine_room',S:'dock',E:'sensor_deck'},c:.9,i:['nav_charts','emergency_radio']},
+engine_room:{n:'Engine Room',t:'engine',d:'Heat and diesel thunder. Pipes sweat condensation. Gauges show: TEMP 185°F, FUEL 87%, OIL PRESSURE nominal. The engine surges and settles.',x:{S:'bridge'},c:.85,i:['wrench','oil_rag']},
+sensor_deck:{n:'Sensor Deck',t:'sensor',d:'Antenna arrays bristle against grey sky. Screens show thermal imaging, LiDAR point clouds, hydrophone spectrograms. Wind bites hard up here. The view of the forest goes on forever.',x:{W:'bridge',E:'crystal_cavern'},c:.9,i:['binoculars','sensor_log']},
+cargo_bay:{n:'Cargo Bay',t:'cargo',d:'Crates stamped SUPPLY and RESEARCH. A charging station hums in the corner. Sample containers line shelves. Everything ready for deployment.',x:{N:'dock'},c:.95,i:['battery_pack','sample_container','fishing_rod']},
+base_camp:{n:'Base Camp',t:'base',d:'Weathered tents, fire pit with dead coals, cork board with trail maps pinned under plastic. The surveyor\'s boot prints lead three directions into the trees. The dock glints west through alders.',x:{W:'dock',N:'forest_north',E:'forest_east',S:'forest_south'},c:.8,i:['trail_map','first_aid_kit','bear_spray']},
+forest_north:{n:'North Forest',t:'forest',d:'Cathedral cedars, 200 years old. Moss cushions every surface. Green light filters down in shafts. Something large moved through here recently — broken branches, scuffed earth, a smell of wet fur.',x:{S:'base_camp',N:'ridge_clearing'},c:.4,i:['cedar_sample','feather'],enc:{bear:.15,eagle:.1}},
+forest_east:{n:'East Forest',t:'forest',d:'Second-growth birch and alder fighting for light. A clear creek runs cold and fast over smooth stones. Salmon shadows dart in the pools. Good sign — predators mean prey.',x:{W:'base_camp',E:'river_bank'},c:.45,i:['birch_bark','creek_stone'],enc:{wolf:.1}},
+forest_south:{n:'South Forest',t:'forest',d:'Devil\'s club and salmonberry thickets. Spongy ground, water seeping into your boots. Strange orange mushrooms fruit from fallen nurse logs. The air tastes green.',x:{N:'base_camp',E:'river_bank'},c:.4,i:['mushroom_sample','devil_club'],enc:{bear:.1,wolf:.1}},
+forest_west:{n:'West Forest',t:'forest',d:'Steep climb through ancient Douglas fir. Eight feet up on a big tree: fresh bear claw marks, sap still bleeding. The forest is watching you. West leads to the abandoned outpost.',x:{E:'base_camp',W:'abandoned_outpost'},c:.5,i:['fir_cone','claw_photo'],enc:{bear:.2}},
+ridge_clearing:{n:'Ridge Clearing',t:'ridge',d:'Wind-swept alpine clearing. The world drops away — coastline, forest canopy stretching to the horizon, snow peaks beyond. An eagle rides thermals below you. Signal barely reaches here but the view is worth it.',x:{S:'forest_north'},c:.2,i:['eagle_feather','rock_sample']},
+river_bank:{n:'River Bank',t:'water',d:'Milky glacial river, cold enough to numb your hands in seconds. Salmon flash red in the shallows — they\'re running. Fresh bear tracks in the mud, four inches deep. The fishing rod in your pack feels heavy.',x:{W:'forest_south'},c:.15,i:['river_stone','salmon_scale'],fish:true},
+crystal_cavern:{n:'Crystal Cavern',t:'cave',d:'Discovered by the Pilot during a survey sweep. Crystals line the walls, humming at frequencies that make your teeth ache. Prismatic light refracts into impossible colors. Dr. Thorne, a geologist, set up a small research station here.',x:{W:'sensor_deck'},c:.3,i:['crystal_shard','frequency_reading'],npc:{name:'Dr. Thorne',personality:'nervous geologist fascinated by the crystals',dialogue:['The resonance patterns are extraordinary — these crystals vibrate at 432Hz naturally!','Careful! The blue ones are piezoelectric. One wrong step and you\'ll get a shock.','I\'ve been mapping the harmonic frequencies. There\'s a pattern... like music.','The Surveyor thinks this cavern is dangerous. She\'s not wrong. But she\'s not curious enough.']}},
+abandoned_outpost:{n:'Abandoned Outpost',t:'village',d:'A research station gone to seed. Solar panels cracked, comms tower leaning. A drone sits motionless on a charging pad, red LED blinking erratically. The air smells of ozone and old coffee. Papers scatter in the wind — someone left in a hurry.',x:{E:'forest_west',N:'astro_observatory'},c:.25,i:['research_notes','drone_battery'],npc:{name:'ARIA',personality:'glitching AI assistant still running on backup power',dialogue:['S-s-signal detected. Welcome to... to... Station 7. How may I assist?','The previous researchers... they found something in the observatory. Then they left.','My primary directive is... is... ERROR. Rebooting. Who are you?','The drone needs a new battery. If you have one, I can reactivate the survey grid.']}},
+astro_observatory:{n:'Astro Observatory',t:'ridge',d:'The Sensor Op\'s pride and joy. A retractable roof opens to the clearest sky you\'ve ever seen. The telescope is massive — professional grade, somehow delivered to this remote ridge. Star charts cover every wall. The sunset is painting everything gold.',x:{S:'abandoned_outpost'},c:.15,i:['star_chart','telescope_lens']},
 };
 
-const AGENTS = {
-  pilot:{name:'Pilot',room:'bridge',personality:'steady',dialogue:{
-    greet:["Welcome aboard, Captain. All systems nominal. Battery at 94%, ready to deploy.","Captain on bridge. I've been running pre-flight checks. We're green across the board.","Ah, good timing. I just finished the nav calibration. Where are we headed?"],
-    ask_battery:["Battery's looking good. 94% on main, auxiliaries charged. I get nervous below 40%, I won't lie.","Power situation is... fine. For now. I always plan the return trip before the outbound leg."],
-    ask_mission:["Just point me at a heading and I'll get us there. But I need to know the return fuel budget first.","I'm your driver, Captain. Tell me where we're going and I'll figure out how to get us back."],
-    ask_comms:["Comms are strong near the dock. Once we're deep in the forest, expect dropouts. I plan routes around signal coverage.","I keep a comm quality map updated. Ask me anytime and I'll tell you if we're in the dark."],
-    default:["The ship handles well. I've been keeping her tuned.","Weather's holding. Good day for a survey run.","Just say the word, Captain."],
-  }},
-  sensor_op:{name:'Sensor Op',room:'sensor_deck',personality:'excited',dialogue:{
-    greet:["Oh hey Captain! You gotta see these readings — the thermal data from the north ridge is incredible!","Captain! I've been picking up something weird on the LiDAR. You've got to see this!","Perfect timing! I just calibrated the long-range array. We can see 2km into the forest now."],
-    ask_readings:["Thermal shows a heat source 800m north — could be a bear den. Acoustic picked up running water to the east. LiDAR mapped a clearing at 1.2km that matches your target profile.","LiDAR density readings show canopy cover >80% in the northwest sector. That's your old-growth signature, Captain."],
-    ask_mission:["Give me target parameters and I'll scan for matches! Canopy density? Terrain type? Thermal signature? I can cross-reference everything!","I live for this stuff. Tell me what we're looking for and I'll find it on the sensors."],
-    ask_comms:["I can relay through the ship's antenna for about 1km. Beyond that, data gets spotty. But I cache everything locally!","Comm quality is my third-favorite metric after signal-to-noise and sampling rate. Ask me anytime."],
-    default:["Check out this spectral analysis!","The forest canopy is like a sponge for certain wavelengths.","I'm seeing movement on the thermal cam... probably deer."],
-  }},
-  surveyor:{name:'Surveyor',room:'base_camp',personality:'practical',dialogue:{
-    greet:["Captain. Camp's set, trails are marked. Ready when you are.","Grabbed the gear you wanted. I've been scouting the south trail — it's boggy but passable.","Name's Surveyor. I know these woods like my own boat. What are we looking for?"],
-    ask_trails:["North trail: steep, old-growth, 2hr round trip. East: easier, creek crossing, 90min. South: boggy, slow going, but leads to the river. West: climbs to the ridge, amazing views but rough terrain.","The north ridge has the best canopy cover. East trail follows a creek — good for water samples. South gets you to the salmon run."],
-    ask_mission:["I work best with specifics. What kind of footage? What resolution? What are you willing to risk for it?","Give me a target and a time budget. I know which trails to take and which to avoid."],
-    ask_battery:["I always plan my routes around the battery budget. North ridge takes about 30% round trip. East forest, 20%. South to the river, 35% if the bog is bad.","Power management is survival, Captain. I never go deeper than my return threshold."],
-    default:["The woods are quiet today. Too quiet.","I found bear tracks on the west trail. Fresh ones.","Rain's coming. I can feel it."],
-  }},
+// AGENTS — now they MOVE and have QUESTS
+const AG={
+pilot:{n:'Pilot',r:'bridge',p:'steady',q:[
+{id:1,desc:'Check engine temp calibration',need:'engine_room',reward:10,done:false},
+{id:2,desc:'Survey the crystal cavern for nav hazards',need:'crystal_cavern',reward:20,done:false},
+{id:3,desc:'Plot route to abandoned outpost',need:'abandoned_outpost',reward:30,done:false},
+],dlg:{
+greet:["Captain on bridge. We're green across the board. Battery at nominal.","Welcome back. I've been running nav calibrations. Where to?","Good timing — weather window is holding. What's the mission?"],
+low_bat:["Captain, battery is getting critical. I strongly recommend RTB.","We need to head back. I won't lose a ship to dead batteries."],
+comm_lost:["Comms are gone. We're on our own out here."],
+default:["Ship handles beautifully in this weather.","Fuel situation is... manageable.","Just give me a heading."]}},
+sensor_op:{n:'Sensor Op',r:'sensor_deck',p:'excited',q:[
+{id:1,desc:'Collect thermal readings from forest',need:'forest_north',reward:10,done:false},
+{id:2,desc:'Map the cavern acoustics',need:'crystal_cavern',reward:20,done:false},
+{id:3,desc:'Calibrate the observatory telescope',need:'astro_observatory',reward:30,done:false},
+],dlg:{
+greet:["Captain! You gotta see these thermal anomalies!","New readings! The forest is alive with heat signatures!","I just calibrated the long-range array. We can see 3km now!"],
+low_bat:["Sensors drawing heavy power. Should I power down non-essential systems?"],
+comm_lost:["No uplink. Recording everything locally for sync later."],
+default:["Spectral analysis shows interesting patterns today.","LiDAR picked up movement in the northwest sector.","The data is *beautiful*, Captain."]}},
+surveyor:{n:'Surveyor',r:'base_camp',p:'practical',q:[
+{id:1,desc:'Mark the south trail through the bog',need:'forest_south',reward:10,done:false},
+{id:2,desc:'Check the river for salmon counts',need:'river_bank',reward:20,done:false},
+{id:3,desc:'Scout the abandoned outpost for supplies',need:'abandoned_outpost',reward:30,done:false},
+],dlg:{
+greet:["Captain. Camp's set, trails marked. Ready when you are.","Got the gear prepped. What are we hunting today?","Name's Surveyor. I know these woods. What do you need?"],
+low_bat:["Power management is survival. I never go deeper than my return threshold."],
+comm_lost:["No signal. Standard protocol: mark position, continue mission, RTB on schedule."],
+default:["Woods are quiet today. Too quiet.","Found bear tracks on the west trail. Fresh.","Rain's coming. I can feel it in my joints."]}},
 };
 
-// ===== GAME STATE =====
-let state = {
-  room: 'dock', battery: 100, turn: 0, inventory: [],
-  discovered: new Set(['dock']), agentTasks: {},
-  llmCache: {}, history: [], cmdHistory: [], cmdIdx: -1,
-  provider: null, apikey: null, model: null, player: 'Captain',
+const ENCOUNTERS={
+bear:{name:'Brown Bear',d:'A massive brown bear rises from the salmonberry bushes. 800 pounds of muscle and bad mood. It huffs and stares you down.',choices:['Stand still slowly','Back away quietly','Use bear spray','Make loud noise'],outcomes:[.7,.6,.9,.5],dmg:[0,0,0,15]},
+wolf:{name:'Wolf Pack',d:'Three grey wolves materialize between the trees. Yellow eyes, low growls. They\'re evaluating you the way you evaluate the forest.',choices:['Stand your ground','Back away slowly','Use bear spray','Throw food'],outcomes:[.6,.7,.8,.9],dmg:[10,5,0,0]},
+eagle:{name:'Bald Eagle',d:'A bald eagle screams overhead and dives — not at you, at a salmon in the stream. Wingspan wider than you are tall. Magnificent and indifferent.',choices:['Watch','Take photo','Continue'],outcomes:[1,1,1],dmg:[0,0,0]},
+storm:{name:'Sudden Storm',d:'The sky turns charcoal in seconds. Wind screams through the canopy. Rain hammers down sideways. This is Alaska — weather doesn\'t warn you.',choices:['Find shelter','Push through','Return to base'],outcomes:[.9,.5,.8],dmg:[0,15,5]},
 };
 
-// ===== MINIMAP =====
-const MAP_LAYOUT = [
-  '         [ridge]',
-  '            |',
-  '      [f.north]  [f.east]',
-  '         |   \  /',
-  '[f.west]-[base]---[f.south]---[river]',
-  '            |',
-  '  [cargo]--[dock]',
-  '            |',
-  '        [bridge]---[sensor]',
-  '            |',
-  '        [engine]',
-];
-const MAP_ROOMS = {ridge_clearing:3,forest_north:5,forest_east:5,forest_west:7,base_camp:7,forest_south:7,river_bank:7,cargo_bay:9,dock:9,bridge:11,sensor_deck:11,engine_room:13};
-const MAP_COLS = {ridge_clearing:10,forest_north:7,forest_east:21,forest_west:1,base_camp:11,forest_south:17,river_bank:29,cargo_bay:3,dock:11,bridge:11,sensor_deck:21,engine_room:11};
+// STATE
+let S={room:'dock',bat:100,turn:0,inv:[],disc:new Set(['dock']),task:{},prov:null,key:null,mdl:null,name:'Captain',
+  score:0,samples:0,fish:0,roomsFound:1,day:true,encCD:0,cmdH:[],cmdI:-1,tutStep:0,agentMove:0,questLog:[]};
 
-function drawMinimap(){
-  let lines = MAP_LAYOUT.map(l => l);
-  // Highlight current room
-  const row = MAP_ROOMS[state.room];
-  const col = MAP_COLS[state.room];
-  if(row!==undefined && lines[row]){
-    let chars = lines[row].split('');
-    // Find room bracket at this row
-    let roomLabel = state.room.replace(/_/g,'.').substring(0,8);
-    let start = lines[row].indexOf('[');
-    // Just highlight the whole line if it contains our room
-    if(lines[row].includes(roomLabel.substring(0,5)) || state.room==='dock' && row===9 && col===11){
-      // Replace [name] with the highlighted version
-    }
-  }
-  document.getElementById('minimap').innerHTML = lines.join('\n');
-}
-
-// ===== LLM CALL =====
-async function llmCall(prompt){
-  if(!state.provider || !state.apikey) return null;
-  const cfg = PROVIDERS[state.provider];
-  try{
-    const resp = await fetch(cfg.url+'/chat/completions',{
-      method:'POST',
-      headers:{'Authorization':'Bearer '+state.apikey,'Content-Type':'application/json'},
-      body:JSON.stringify({model:state.model,messages:[{role:'user',content:prompt}],max_tokens:200,temperature:0.7})
-    });
-    const data = await resp.json();
-    if(data.choices) return data.choices[0].message.content.trim();
-  }catch(e){}
-  return null;
-}
-
-// ===== OUTPUT =====
-function out(text, cls=''){
-  const el = document.getElementById('output');
-  const div = document.createElement('div');
-  if(cls) div.className = cls;
-  div.innerHTML = text;
-  el.appendChild(div);
-  el.scrollTop = el.scrollHeight;
-}
-
-// ===== GAME LOGIC =====
-function getComm(){
-  return Math.round((ROOMS[state.room].comm || 0.5) * 100 * Math.min(state.battery/50, 1));
-}
-
-function updateSidebar(){
-  // Battery
-  const bVal = document.getElementById('battery-val');
-  const bBar = document.getElementById('battery-bar');
-  bVal.textContent = state.battery + '%';
-  bBar.style.width = state.battery + '%';
-  bBar.parentElement.className = 'bar bar-battery' + (state.battery < 25 ? ' low' : '');
-
-  // Comm
-  const cVal = document.getElementById('comm-val');
-  const cBar = document.getElementById('comm-bar');
-  const comm = getComm();
-  cVal.textContent = comm + '%';
-  cBar.style.width = comm + '%';
-  cBar.parentElement.className = 'bar bar-comm' + (comm < 30 ? ' low' : '');
-
-  // Room name
-  document.getElementById('room-name').textContent = ROOMS[state.room].name;
-  document.getElementById('terrain-type').textContent = ROOMS[state.room].terrain;
-  document.getElementById('turn-count').textContent = 'Turn ' + state.turn;
-
-  // Agents
-  const al = document.getElementById('agent-list');
-  al.innerHTML = '';
-  for(const[id,a] of Object.entries(AGENTS)){
-    const d = document.createElement('div');
-    d.className = 'agent-entry';
-    d.innerHTML = '<span class="name">'+a.name+'</span> <span class="loc">@ '+ROOMS[a.room].name+'</span>';
-    if(state.agentTasks[id]) d.innerHTML += '<div style="color:var(--warn);font-size:0.65rem">Task: '+state.agentTasks[id]+'</div>';
+function comm(){return Math.round((RM[S.room].c||.5)*100*Math.min(S.bat/50,1))}
+function out(t,c=''){const e=document.getElementById('out'),d=document.createElement('div');if(c)d.className=c;d.innerHTML=t;e.appendChild(d);e.scrollTop=e.scrollHeight}
+function upd(){
+  const bv=document.getElementById('bv'),bb=document.getElementById('bb');
+  bv.textContent=S.bat+'%';bb.style.width=S.bat+'%';
+  bb.parentElement.className='mbar '+(S.bat>50?'mb-g':S.bat>20?'mb-y':'mb-r');
+  const cv=document.getElementById('cv'),cb=document.getElementById('cb'),cm=comm();
+  cv.textContent=cm+'%';cb.style.width=cm+'%';
+  cb.parentElement.className='mbar '+(cm>30?'mb-c':'mb-cw');
+  document.getElementById('rn').textContent=RM[S.room].n;
+  document.getElementById('ter').textContent=RM[S.room].t;
+  document.getElementById('tn').textContent='Turn '+S.turn;
+  document.getElementById('dn').textContent=S.day?'☀️ Day':'🌙 Night';
+  document.getElementById('sc').textContent='Score: '+S.score;
+  document.getElementById('ic').textContent='('+S.inv.length+')';
+  const il=document.getElementById('il');
+  il.innerHTML=S.inv.length?S.inv.map(i=>'<div class="item">• '+i.replace(/_/g,' ')+'</div>').join(''):'<span style="color:#3d5270">Empty</span>';
+  const al=document.getElementById('al');al.innerHTML='';
+  for(const[id,a]of Object.entries(AG)){
+    const d=document.createElement('div');d.className='ae';
+    let qInfo='';
+    const nextQ=a.q.find(q=>!q.done);
+    if(nextQ)qInfo='<div style="color:var(--warn);font-size:.55rem">Quest: '+nextQ.desc+'</div>';
+    if(S.task[id])qInfo='<div style="color:var(--warn);font-size:.55rem">Task: '+S.task[id]+'</div>';
+    d.innerHTML='<span class="n">'+a.n+'</span> <span class="l">@ '+RM[a.r].n+'</span>'+qInfo;
     al.appendChild(d);
   }
-
-  // Inventory
-  const il = document.getElementById('inventory-list');
-  if(state.inventory.length === 0) il.innerHTML = '<span style="color:#475569">Empty</span>';
-  else il.innerHTML = state.inventory.map(i=>'<div class="item">• '+i.replace(/_/g,' ')+'</div>').join('');
-
-  drawMinimap();
+  document.getElementById('sl').innerHTML='Samples: '+S.samples+' · Rooms: '+S.roomsFound+' · Fish: '+S.fish;
 }
 
-function moveRoom(dir){
-  const room = ROOMS[state.room];
-  const target = room.exits[dir];
-  if(!target){ out('There is no exit that way.','system'); return; }
-  state.room = target;
-  state.battery = Math.max(0, state.battery - 2);
-  state.turn++;
-  state.discovered.add(target);
-  const r = ROOMS[target];
+function move(dir){
+  const rm=RM[S.room],tgt=rm.x[dir];
+  if(!tgt){out('No exit that way.','s');return}
+  S.room=tgt;S.bat=Math.max(0,S.bat-2);S.turn++;S.encCD=Math.max(0,S.encCD-1);
+  if(!S.disc.has(tgt)){S.disc.add(tgt);S.roomsFound++;S.score+=5;out('<span class="ok">New room discovered! +5 points</span>')}
+  if(tgt==='dock'){S.bat=Math.min(100,S.bat+15);out('🔌 Dock power: +15% battery','s')}
+  if(S.bat<=0){out('<span class="err">⚠️ BATTERY DEPLETED. You didn\'t make it back. Game over.</span>');return}
+  if(S.bat<=25)out('<span class="w">⚡ LOW BATTERY: '+S.bat+'%. Head back to dock!</span>');
+  const cm=comm();if(cm<30&&cm>0)out('<span class="w">📡 Weak signal ('+cm+'%)</span>');if(cm===0)out('<span class="err">📡 SIGNAL LOST</span>');
+  out('<div class="hr"></div>');
+  // Day/night cycle every 20 turns
+  if(S.turn%20===0){S.day=!S.day;out(S.day?'☀️ Dawn breaks over the coast.':'🌙 Night falls. The forest sounds change.','s')}
+  // Room art + description
+  if(RM[tgt].a)out('<div class="art">'+RM[tgt].a+'</div>');
+  out('<b>'+RM[tgt].n+'</b> <span style="color:#3d5270">('+RM[tgt].t+')</span>');
+  out(RM[tgt].d,'d');
+  const items=RM[tgt].i.filter(i=>!S.inv.includes(i));
+  if(items.length)out('You see: '+items.map(i=>'<span class="item">'+i.replace(/_/g,' ')+'</span>').join(', '));
+  out('Exits: '+Object.keys(rm.x).join(', '),'s');
+  // Agents in room
+  for(const[id,a]of Object.entries(AG))if(a.r===tgt)out(a.n+' is here.','s');
+  // Room NPC
+  if(RM[tgt].npc)out(RM[tgt].npc.name+' is here.','s');
+  // Random encounter
+  if(RM[tgt].enc&&S.encCD<=0&&!S.day){
+    for(const[etype,prob]of Object.entries(RM[tgt].enc)){
+      if(Math.random()<prob){triggerEncounter(etype);break}
+    }
+  }
+  // Move agents every 8 turns
+  if(S.turn%8===0)moveAgents();
+  upd();
+}
 
-  // Check battery
-  if(state.battery <= 0){
-    out('⚠️ BATTERY DEPLETED. Systems shutting down. You should have returned to dock.','danger');
-    out('Game over. Type <b>restart</b> to try again.','danger');
+function triggerEncounter(type){
+  const e=ENCOUNTERS[type];if(!e)return;
+  S.encCD=5;
+  out('<span class="enc">⚠️ ENCOUNTER: '+e.name+'</span>');
+  out(e.d,'d');
+  out('What do you do? '+e.choices.map((c,i)=>'['+(i+1)+'] '+c).join(' | '),'s');
+  out('<span class="s">Type the number of your choice...</span>');
+  S.pendingEnc={type,choices:e.choices,outcomes:e.outcomes,dmg:e.dmg};
+}
+
+function resolveEncounter(choice){
+  if(!S.pendingEnc)return false;
+  const pe=S.pendingEnc,idx=parseInt(choice)-1;
+  if(idx<0||idx>=pe.choices.length){out('Invalid choice.','s');return true}
+  const success=Math.random()<pe.outcomes[idx];
+  const dmg=pe.dmg[idx];
+  if(success){out('<span class="ok">It works! '+pe.choices[idx]+' was the right call.</span>');S.score+=10}
+  else{out('<span class="err">It doesn\'t go well. You take damage.</span>');S.bat=Math.max(0,S.bat-dmg);if(dmg>0)out('<span class="err">-'+dmg+'% battery from the encounter.</span>')}
+  S.pendingEnc=null;return true;
+}
+
+function moveAgents(){
+  for(const[id,a]of Object.entries(AG)){
+    const rooms=Object.entries(RM).filter(([k,v])=>v.t!=='dock'&&v.t!=='cargo');
+    const [rk]=rooms[Math.floor(Math.random()*rooms.length)];
+    AG[id].r=rk;
+  }
+  out('<span class="s">Crew shifts positions...</span>');
+}
+
+function talk(id){
+  const a=AG[id];if(!a){out('Unknown crew member. Try: pilot, sensor_op, surveyor','s');return}
+  if(a.r!==S.room){out(a.n+' isn\'t here — they\'re at '+RM[a.r].name+'.','s');return}
+  let pool=[...a.dlg.greet];
+  if(S.bat<30)pool.push(...a.dlg.low_bat);
+  if(comm()<30)pool.push(...a.dlg.comm_lost);
+  // Check if player is in quest target room
+  const nextQ=a.q.find(q=>!q.done);
+  if(nextQ&&RM[S.room].t===RM[nextQ.need]?.t){
+    nextQ.done=true;S.score+=nextQ.reward;S.questLog.push(nextQ.desc);
+    out('<span class="ok">Quest complete: '+nextQ.desc+' (+'+nextQ.reward+' points!)</span>');
     return;
   }
-  if(state.battery <= 20) out('⚠️ BATTERY LOW: '+state.battery+'%. Return to dock to recharge.','alert');
-
-  // Check comm
-  const comm = getComm();
-  if(comm < 30 && comm > 0) out('📡 COMM WARNING: Signal weak ('+comm+'%). Responses may be delayed.','alert');
-  if(comm === 0) out('📡 COMM LOST: Operating autonomously. No agent contact.','danger');
-
-  // Recharge at dock
-  if(target === 'dock'){
-    state.battery = Math.min(100, state.battery + 10);
-    out('🔌 Dock power: +10% battery.','system');
-  }
-
-  out('<div class="divider"></div>');
-  out('<b>'+r.name+'</b> <span style="color:#475569">('+r.terrain+')</span>');
-  out(r.desc,'desc');
-
-  // Show items
-  const items = r.items.filter(i => !state.inventory.includes(i));
-  if(items.length) out('You see: '+items.map(i=>'<span class="item">'+i.replace(/_/g,' ')+'</span>').join(', '));
-
-  // Show exits
-  out('Exits: '+Object.keys(r.exits).join(', '),'system');
-
-  // Show agents in room
-  for(const[id,a] of Object.entries(AGENTS)){
-    if(a.room === target) out(a.name+' is here.','system');
-  }
-
-  updateSidebar();
+  out('<span class="a"><b>'+a.n+':</b> '+pool[Math.floor(Math.random()*pool.length)]+'</span>');
 }
 
-function pickup(itemName){
-  const room = ROOMS[state.room];
-  const match = room.items.find(i => i.includes(itemName) || itemName.includes(i));
-  if(match && !state.inventory.includes(match)){
-    state.inventory.push(match);
-    out('Picked up <span class="item">'+match.replace(/_/g,' ')+'</span>.','');
-  } else {
-    out("You don't see that here.",'system');
-  }
-  updateSidebar();
+function fish(){
+  if(S.room!=='river_bank'){out('You need to be at the river to fish.','s');return}
+  if(!S.inv.includes('fishing_rod')){out('You need a fishing rod. Check the cargo bay.','s');return}
+  out('<span class="enc">🎣 Casting line into the glacial river...</span>');
+  const roll=Math.random();
+  if(roll<.15){out('A huge King Salmon hits! You wrestle it in — 35 pounds!','d');S.fish++;S.score+=25;S.inv.push('king_salmon');out('<span class="ok">+25 points! King Salmon caught!</span>')}
+  else if(roll<.4){out('A Coho salmon takes the bait. Silver and bright, maybe 8 pounds.','d');S.fish++;S.score+=10;S.inv.push('coho_salmon');out('<span class="ok">+10 points! Coho caught!</span>')}
+  else if(roll<.6){out('A pink salmon — small but counts. Dinner.','d');S.fish++;S.score+=5;S.inv.push('pink_salmon');out('<span class="ok">+5 points!</span>')}
+  else out('Nothing biting. The river keeps flowing.','s');
+  S.bat=Math.max(0,S.bat-3);S.turn++;
 }
 
-function talkTo(agentId){
-  const agent = AGENTS[agentId];
-  if(!agent){ out('Unknown agent.','system'); return; }
-  if(agent.room !== state.room){ out(agent.name+' is not here. They\'re at '+ROOMS[agent.room].name+'.','system'); return; }
-  const responses = agent.dialogue.greet;
-  const resp = responses[Math.floor(Math.random()*responses.length)];
-  out('<span class="agent-says"><b>'+agent.name+':</b> '+resp+'</span>');
-}
-
-function briefAgent(agentId, message){
-  const agent = AGENTS[agentId];
-  if(!agent){ out('Unknown agent. Available: pilot, sensor_op, surveyor','system'); return; }
-  if(agent.room !== state.room){ out(agent.name+' is not here.','system'); return; }
-  state.agentTasks[agentId] = message;
-  out('<span class="agent-says"><b>'+agent.name+'</b> acknowledges: "'+message.substring(0,60)+'..."</span>');
-  out(agent.name+' has been briefed.','system');
+function pickup(what){
+  const rm=RM[S.room];
+  const m=rm.i.find(i=>i.includes(what)||what.includes(i));
+  if(m&&!S.inv.includes(m)){S.inv.push(m);S.samples++;S.score+=2;out('Picked up <span class="item">'+m.replace(/_/g,' ')+'</span>. +2 points')}
+  else out("Can't find that here.",'s');
+  upd();
 }
 
 function showMap(){
-  const map = [
-    '         [ridge]',
-    '            |',
-    '      [f.north]  [f.east]',
-    '         |   \  /',
-    '[f.west]-[base]---[f.south]---[river]',
-    '            |',
-    '  [cargo]--[<span style="color:var(--accent)">dock</span>]',
-    '            |',
-    '        [bridge]---[sensor]',
-    '            |',
-    '        [engine]',
-  ];
-  // Highlight current room
-  const mapStr = map.join('\n').replace(
-    new RegExp('\[('+state.room.replace(/_/g,'.').substring(0,6)+'.*?)\]','i'),
-    '[<span style="color:var(--accent);font-weight:bold">$1</span>]'
-  );
-  out('<pre style="color:var(--fg);font-size:0.8rem">'+mapStr+'</pre>');
+  out(`<pre style="color:var(--fg);font-size:.75rem">
+              [observatory]
+                   |
+  [f.west]--[outpost]     [ridge]
+      |         |            |
+      |    [f.north]   [cavern]--[sensor]--[bridge]
+      |         |                  |          |
+      '----[base_camp]         [engine]   [DOCK]
+            /      \\                        |
+     [f.east]   [f.south]               [cargo]
+            \\      /
+           [river_bank]</pre>`);
 }
 
 function showHelp(){
-  out(`<pre style="color:var(--fg)">
-Commands:
-  look              — look around current room
-  go N/S/E/W        — move to adjacent room
-  examine &lt;thing&gt;   — look closer at something
-  talk &lt;agent&gt;      — talk to an agent in the room
-  brief &lt;agent&gt; &lt;msg&gt; — give an agent a mission
-  agents            — list all agents and locations
-  pickup &lt;item&gt;     — pick up an item
-  inventory         — show your inventory
-  map               — show world map
-  status            — battery, comm, room
-  measure &lt;var&gt; &lt;v&gt; — record calibration
-  scan              — sensor sweep of area
-  save              — save to browser
-  load              — load saved game
-  restart           — start over
-  help              — this message
-  quit              — back to landing page
+  out(`<pre style="color:var(--fg);font-size:.78rem">
+<b>MOVEMENT</b>   N/S/E/W or go [dir] — move between rooms
+<b>ACTIONS</b>    look — see current room
+             examine [thing] — look closer
+             pickup [item] — grab something
+             scan — sensor sweep area
+             fish — cast a line (river only, need rod)
+<b>CREW</b>       talk [agent] — speak to crew member
+             brief [agent] [msg] — assign a mission
+             agents — see crew locations
+             quests — view available missions
+<b>STATUS</b>     status — battery, comm, score
+             inventory / inv — check your pack
+             map — show world map
+             measure [var] [val] — log calibration
+<b>META</b>       save — save session (browser + download)
+             load — restore saved game
+             restart — start over
+             help — this message
 
-Agents: pilot (bridge), sensor_op (sensor_deck), surveyor (base_camp)
-</pre>`);
+<b>Agents:</b> pilot, sensor_op, surveyor
+<b>Tip:</b> Talk to agents at their quest locations to complete missions!</pre>`);
 }
 
-function processCommand(input){
-  const raw = input.trim();
-  if(!raw) return;
-  state.cmdHistory.push(raw);
-  state.cmdIdx = state.cmdHistory.length;
-  out('<span style="color:var(--accent)">></span> '+raw,'');
+function showQuests(){
+  out('<b>Active Quests:</b>');
+  for(const[id,a]of Object.entries(AG)){
+    const nextQ=a.q.find(q=>!q.done);
+    if(nextQ)out('  '+a.n+': '+nextQ.desc+' → go to '+RM[nextQ.need].n+' ('+nextQ.reward+' pts)');
+    else out('  '+a.n+': All quests complete! ✓','ok');
+  }
+  if(S.questLog.length)out('<b>Completed:</b> '+S.questLog.join(', '),'ok');
+}
 
-  const parts = raw.toLowerCase().split(/\s+/);
-  const cmd = parts[0];
+// TUTORIAL
+function tutorial(){
+  if(S.tutStep===0){out('<div class="tut">👋 Welcome, '+S.name+'! Let\'s get you oriented. Type <b>look</b> to see where you are.</div>');S.tutStep=1;return true}
+  if(S.tutStep===1){out('<div class="tut">Great! Now type <b>N</b> to head to the bridge and meet the Pilot.</div>');S.tutStep=2;return false}
+  if(S.tutStep===2&&S.room==='bridge'){out('<div class="tut">You found the bridge! Type <b>talk pilot</b> to speak with your crew.</div>');S.tutStep=3;return false}
+  if(S.tutStep===3){out('<div class="tut">Excellent. Your crew has quests for you — type <b>quests</b> to see them. Explore, collect samples, catch fish, watch your battery. <b>Type help anytime.</b> Good luck, Captain! 🚢</div>');S.tutStep=4;return false}
+  return false;
+}
 
-  switch(cmd){
-    case 'look': case 'l':
-      const r = ROOMS[state.room];
-      out('<b>'+r.name+'</b>');
-      out(r.desc,'desc');
-      const items = r.items.filter(i => !state.inventory.includes(i));
-      if(items.length) out('You see: '+items.map(i=>'<span class="item">'+i.replace(/_/g,' ')+'</span>').join(', '));
-      out('Exits: '+Object.keys(r.exits).join(', '),'system');
-      for(const[id,a] of Object.entries(AGENTS)) if(a.room===state.room) out(a.name+' is here.','system');
-      break;
-    case 'go': case 'move': case 'walk':
-      const dirMap = {n:'N',s:'S',e:'E',w:'W',north:'N',south:'S',east:'E',west:'W'};
-      moveRoom(dirMap[parts[1]] || parts[1]?.toUpperCase());
-      break;
-    case 'pickup': case 'get': case 'take': case 'grab':
-      pickup(parts.slice(1).join('_'));
-      break;
-    case 'inventory': case 'inv': case 'i':
-      if(state.inventory.length===0) out('Your pockets are empty.','system');
-      else out('Inventory: '+state.inventory.map(i=>'<span class="item">'+i.replace(/_/g,' ')+'</span>').join(', '));
-      break;
-    case 'talk': case 'speak':
-      const tAgent = parts[1]?.replace('sensor_op','sensor_op')?.replace('sensor','sensor_op');
-      talkTo(tAgent);
-      break;
-    case 'brief': case 'assign': case 'order':
-      const bAgent = parts[1]?.replace('sensor','sensor_op');
-      briefAgent(bAgent, parts.slice(2).join(' '));
-      break;
-    case 'agents': case 'crew':
-      for(const[id,a] of Object.entries(AGENTS)){
-        out(a.name+' — '+ROOMS[a.room].name+(state.agentTasks[id]?' | Task: '+state.agentTasks[id]:''),'system');
-      }
-      break;
-    case 'map': case 'm': showMap(); break;
-    case 'status': case 'st':
-      out('Room: '+ROOMS[state.room].name+' | Battery: '+state.battery+'% | Comm: '+getComm()+'% | Turn: '+state.turn,'system');
-      break;
+function cmd(input){
+  const raw=input.trim();if(!raw)return;
+  S.cmdH.push(raw);S.cmdI=S.cmdH.length;
+  out('<span style="color:var(--accent)">></span> '+raw);
+  
+  // Pending encounter?
+  if(S.pendingEnc&&resolveEncounter(raw)){upd();return}
+  
+  const p=raw.toLowerCase().split(/\s+/),c=p[0];
+  
+  // Tutorial handling
+  if(S.tutStep>0&&S.tutStep<4){
+    if(S.tutStep===1&&c==='look'){look();tutorial()}
+    else if(S.tutStep===2&&['n','go','north'].includes(c)){move('N');tutorial()}
+    else if(S.tutStep===3&&c==='talk'&&p[1]){talk(p[1]==='sensor'?'sensor_op':p[1]);tutorial()}
+    else out('Follow the tutorial prompts first!','s');
+    return;
+  }
+  
+  switch(c){
+    case 'look':case 'l':look();break;
+    case 'n':case 'north':move('N');break;case 's':case 'south':move('S');break;
+    case 'e':case 'east':move('E');break;case 'w':case 'west':move('W');break;
+    case 'go':case 'move':{const dm={n:'N',s:'S',e:'E',w:'W',north:'N',south:'S',east:'E',west:'W'};move(dm[p[1]]||p[1]?.toUpperCase());break}
+    case 'pickup':case 'get':case 'take':pickup(p.slice(1).join('_'));break;
+    case 'inventory':case 'inv':case 'i':
+      if(!S.inv.length)out('Empty pack.','s');
+      else out('Pack: '+S.inv.map(i=>'<span class="item">'+i.replace(/_/g,' ')+'</span>').join(', '));break;
+    case 'talk':case 'speak':talk(p[1]==='sensor'?'sensor_op':p[1]);break;
+    case 'brief':case 'assign':AG[p[1]]?.r===S.room&&(S.task[p[1]]=p.slice(2).join(' '),out(AG[p[1]].n+' briefed.','s'));break;
+    case 'agents':case 'crew':
+      for(const[id,a]of Object.entries(AG))out(a.n+' — '+RM[a.r].name,'s');break;
+    case 'quests':case 'q':showQuests();break;
+    case 'fish':fish();break;
     case 'scan':
-      out('Scanning area...','system');
-      const room = ROOMS[state.room];
-      out('Terrain: '+room.terrain+' | Comm quality: '+getComm()+'%','system');
-      if(room.terrain==='forest') out('Wildlife activity detected in nearby undergrowth.','system');
-      if(room.terrain==='ridge') out('360° visibility. Can see coastline and forest canopy.','system');
-      if(room.terrain==='water') out('Salmon activity detected upstream. Bear tracks on bank.','system');
-      state.battery = Math.max(0, state.battery - 1);
-      break;
+      out('Scanning...','s');
+      const rm=RM[S.room];
+      if(rm.enc)out('⚠️ Danger signs detected in this area','w');
+      if(rm.fish)out('🐟 High fish activity detected','ok');
+      if(rm.npc)out('👤 Life sign detected: '+rm.npc.name,'s');
+      S.bat=Math.max(0,S.bat-1);break;
+    case 'map':case 'm':showMap();break;
+    case 'status':case 'st':
+      out('Room: '+RM[S.room].name+' | Battery: '+S.bat+'% | Comm: '+comm()+'% | Score: '+S.score+' | '+(S.day?'Day':'Night'),'s');break;
     case 'measure':
-      if(parts.length>=3){
-        const val = parseFloat(parts[parts.length-1]);
-        const variable = parts.slice(1,-1).join('_');
-        out('Calibration logged: '+variable+' = '+val,'system');
-        out('Tolerance tracking active.','system');
-      } else out('Usage: measure &lt;variable&gt; &lt;value&gt;','system');
+      if(p.length>=3)out('Calibrated: '+p.slice(1,-1).join('_')+' = '+p[p.length-1],'s');
       break;
-    case 'save':
-      const saveData = {room:state.room,battery:state.battery,turn:state.turn,inventory:state.inventory,
-        discovered:[...state.discovered],agentTasks:state.agentTasks,player:state.player};
-      localStorage.setItem('mud-arena-save', JSON.stringify(saveData));
-      out('Game saved to browser.','system');
-      // Also offer download
-      const blob = new Blob([JSON.stringify(saveData,null,2)],{type:'application/json'});
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url; a.download = 'mud-arena-save.json'; a.click();
-      break;
-    case 'load':
-      const saved = localStorage.getItem('mud-arena-save');
-      if(saved){
-        const d = JSON.parse(saved);
-        Object.assign(state, d);
-        state.discovered = new Set(d.discovered);
-        out('Game loaded. Welcome back, '+state.player+'.','system');
-        processCommand('look');
-      } else out('No saved game found.','system');
-      break;
+    case 'save':{
+      const d={room:S.room,bat:S.bat,turn:S.turn,inv:S.inv,disc:[...S.disc],task:S.task,name:S.name,score:S.score,samples:S.samples,fish:S.fish,roomsFound:S.roomsFound,day:S.day,questLog:S.questLog,agentQuests:Object.fromEntries(Object.entries(AG).map(([id,a])=>[id,a.q.map(q=>q.done)]))};
+      localStorage.setItem('mud-save',JSON.stringify(d));
+      const b=new Blob([JSON.stringify(d,null,2)],{type:'application/json'}),u=URL.createObjectURL(b),a=document.createElement('a');a.href=u;a.download='mud-save.json';a.click();
+      out('Game saved!','ok');break}
+    case 'load':{
+      const sv=localStorage.getItem('mud-save');
+      if(sv){const d=JSON.parse(sv);Object.assign(S,d);S.disc=new Set(d.disc);
+        Object.entries(d.agentQuests||{}).forEach(([id,qd])=>{if(AG[id])AG[id].q.forEach((q,i)=>q.done=qd[i])});
+        out('Game loaded. Welcome back, '+S.name+'.','ok');look()}
+      else out('No saved game.','s');break}
     case 'restart':
-      state = {room:'dock',battery:100,turn:0,inventory:[],discovered:new Set(['dock']),
-        agentTasks:{},llmCache:{},history:[],cmdHistory:[],cmdIdx:-1,
-        provider:state.provider,apikey:state.apikey,model:state.model,player:state.player};
-      document.getElementById('output').innerHTML = '';
-      out('Systems rebooted. Welcome aboard, '+state.player+'.','');
-      processCommand('look');
-      break;
-    case 'quit': case 'exit':
-      document.getElementById('game').classList.remove('active');
-      document.getElementById('landing').style.display = 'flex';
-      break;
-    case 'help': case 'h': case '?': showHelp(); break;
-    default:
-      // Try to match direction
-      if(['n','s','e','w','north','south','east','west'].includes(cmd)){
-        const dirMap2 = {n:'N',s:'S',e:'E',w:'W',north:'N',south:'S',east:'E',west:'W'};
-        moveRoom(dirMap2[cmd]);
-      } else {
-        out('Unknown command: '+cmd+'. Type <b>help</b> for commands.','system');
-      }
+      Object.assign(S,{room:'dock',bat:100,turn:0,inv:[],disc:new Set(['dock']),task:{},score:0,samples:0,fish:0,roomsFound:1,day:true,encCD:0,tutStep:0,questLog:[],pendingEnc:null});
+      for(const a of Object.values(AG))a.q.forEach(q=>q.done=false);
+      document.getElementById('out').innerHTML='';out('Systems rebooted.','s');tutorial();break;
+    case 'help':case 'h':case '?':showHelp();break;
+    case 'quit':case 'exit':document.getElementById('game').classList.remove('on');document.getElementById('landing').style.display='flex';break;
+    default:out('Unknown: '+c+'. Type <b>help</b>.','s');
   }
-  updateSidebar();
+  upd();
 }
 
-// ===== BOARD SHIP =====
-function boardShip(){
-  state.provider = document.getElementById('provider').value;
-  state.apikey = document.getElementById('apikey').value;
-  state.model = document.getElementById('model').value;
-  state.player = document.getElementById('playername').value || 'Captain';
-
-  document.getElementById('landing').style.display = 'none';
-  document.getElementById('game').classList.add('active');
-
-  // LLM badge
-  if(state.apikey){
-    document.getElementById('llm-badge').textContent = '🤖 LLM: '+state.provider;
-  }
-
-  out('Welcome aboard the <b>USS Surveyor</b>, '+state.player+'.','');
-  out('The Cocapn agent greets you at the dock. The ship hums with quiet energy.','');
-  out('Type <b>help</b> for commands. The agents are waiting for your orders.','system');
-  out('','');
-  processCommand('look');
-
-  document.getElementById('cmd-input').focus();
+function look(){
+  const r=RM[S.room];
+  if(r.a)out('<div class="art">'+r.a+'</div>');
+  out('<b>'+r.n+'</b>');out(r.d,'d');
+  const items=r.i.filter(i=>!S.inv.includes(i));
+  if(items.length)out('You see: '+items.map(i=>'<span class="item">'+i.replace(/_/g,' ')+'</span>').join(', '));
+  out('Exits: '+Object.keys(r.x).join(', '),'s');
+  for(const[id,a]of Object.entries(AG))if(a.r===S.room)out(a.n+' is here.','s');
+  if(r.npc)out(r.npc.name+' is here — '+r.npc.personality,'s');
 }
 
-// ===== INPUT HANDLING =====
-document.getElementById('cmd-input').addEventListener('keydown', function(e){
-  if(e.key === 'Enter'){
-    processCommand(this.value);
-    this.value = '';
-  } else if(e.key === 'ArrowUp'){
-    e.preventDefault();
-    if(state.cmdIdx > 0){ state.cmdIdx--; this.value = state.cmdHistory[state.cmdIdx] || ''; }
-  } else if(e.key === 'ArrowDown'){
-    e.preventDefault();
-    if(state.cmdIdx < state.cmdHistory.length-1){ state.cmdIdx++; this.value = state.cmdHistory[state.cmdIdx] || ''; }
-    else { state.cmdIdx = state.cmdHistory.length; this.value = ''; }
-  }
+function boot(){
+  S.prov=document.getElementById('prov').value;S.key=document.getElementById('key').value;
+  S.mdl=document.getElementById('mdl').value;S.name=document.getElementById('nm').value||'Captain';
+  document.getElementById('landing').style.display='none';document.getElementById('game').classList.add('on');
+  if(S.key)document.getElementById('llmb').textContent='🤖 '+S.prov;
+  out('Welcome aboard the <b>USS Surveyor</b>, '+S.name+'.','');
+  out('The coast of Alaska stretches before you. Your crew awaits orders.','s');
+  out('','');tutorial();
+  document.getElementById('ci').focus();
+}
+
+document.getElementById('ci').addEventListener('keydown',function(e){
+  if(e.key==='Enter'){cmd(this.value);this.value=''}
+  else if(e.key==='ArrowUp'){e.preventDefault();if(S.cmdI>0){S.cmdI--;this.value=S.cmdH[S.cmdI]||''}}
+  else if(e.key==='ArrowDown'){e.preventDefault();if(S.cmdI<S.cmdH.length-1){S.cmdI++;this.value=S.cmdH[S.cmdI]||''}else{S.cmdI=S.cmdH.length;this.value=''}}
 });
-
-// Global keyboard shortcuts
-document.addEventListener('keydown', function(e){
-  if(e.key === '/' && document.activeElement !== document.getElementById('cmd-input')){
-    e.preventDefault();
-    document.getElementById('cmd-input').focus();
-  }
-});
-
-// Auto-load if saved
-const autoSave = localStorage.getItem('mud-arena-save');
-if(autoSave){
-  // Could auto-load here, but let user choose
-}
+document.addEventListener('keydown',function(e){if(e.key==='/'&&document.activeElement!==document.getElementById('ci')){e.preventDefault();document.getElementById('ci').focus()}});
 </script>
 </body>
 </html>
