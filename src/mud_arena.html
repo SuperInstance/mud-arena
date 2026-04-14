@@ -1,0 +1,356 @@
+Below is a **single‑file** implementation that meets every requirement you listed.  
+Save it as `index.html` (or any name you like) in the same folder as the Emscripten‑generated `mud_arena.js` (and its accompanying `mud_arena.wasm`). Open the file in a browser and you’ll have a fully‑functional, SSH‑style MUD client with no external libraries.
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>WASM MUD Client</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+/* -------------------------------------------------
+   Global dark‑theme, monospace, 80‑column feel
+   ------------------------------------------------- */
+html,body{
+    margin:0; padding:0;
+    height:100%;
+    font-family: "Courier New", Courier, monospace;
+    background:#000;
+    color:#0f0;
+    overflow:hidden;
+}
+
+/* Optional scan‑line overlay */
+body::before{
+    content:"";
+    position:fixed;
+    inset:0;
+    background:linear-gradient(rgba(0,255,0,.02) 50%,transparent 50%);
+    background-size:100% 2px;
+    pointer-events:none;
+    opacity:.4;
+}
+
+/* -------------------------------------------------
+   Layout – flex container, responsive
+   ------------------------------------------------- */
+#app{
+    display:flex;
+    flex-direction:column;
+    height:100%;
+}
+
+/* Top area – terminal + status */
+#main{
+    flex:1 1 auto;
+    display:flex;
+    overflow:hidden;
+}
+
+/* Terminal column (80 ch wide) */
+#terminal-wrapper{
+    flex:0 0 auto;
+    width:80ch;               /* 80‑column feel */
+    max-width:100%;
+    display:flex;
+    flex-direction:column;
+    border-right:2px solid #0f0;
+    background:#000;
+}
+
+/* Scrolling output area */
+#terminal{
+    flex:1 1 auto;
+    padding:0.5rem;
+    overflow-y:auto;
+    white-space:pre-wrap;
+    word-break:break-all;
+}
+
+/* Input line */
+#input{
+    width:100%;
+    box-sizing:border-box;
+    border:none;
+    outline:none;
+    background:#000;
+    color:#0f0;
+    padding:0.5rem;
+    font-family:inherit;
+    font-size:1rem;
+}
+
+/* Status bar */
+#status{
+    height:2rem;
+    line-height:2rem;
+    padding:0 0.5rem;
+    background:#111;
+    border-top:1px solid #0f0;
+    font-size:0.9rem;
+}
+
+/* Side panel – agent list & controls */
+#sidebar{
+    flex:1 1 auto;
+    min-width:12rem;
+    max-width:20rem;
+    background:#111;
+    border-left:2px solid #0f0;
+    display:flex;
+    flex-direction:column;
+    overflow:hidden;
+}
+
+/* Agent list */
+#agents{
+    flex:1 1 auto;
+    overflow-y:auto;
+    padding:0.5rem;
+}
+.agent{
+    padding:0.2rem 0;
+    border-bottom:1px dotted #0a0;
+}
+
+/* Calibration toggle */
+#calibration{
+    padding:0.5rem;
+    border-top:1px solid #0f0;
+    text-align:center;
+}
+#calibration button{
+    background:#000;
+    color:#0f0;
+    border:1px solid #0f0;
+    padding:0.3rem 0.6rem;
+    cursor:pointer;
+}
+#calibration button:hover{
+    background:#0f0;
+    color:#000;
+}
+
+/* Mobile adjustments */
+@media (max-width:600px){
+    #main{flex-direction:column;}
+    #terminal-wrapper{width:100%; border-right:none; border-bottom:2px solid #0f0;}
+    #sidebar{max-width:none; min-height:8rem; border-left:none; border-top:2px solid #0f0;}
+}
+</style>
+</head>
+<body>
+<div id="app">
+    <!-- Terminal column -->
+    <div id="main">
+        <div id="terminal-wrapper">
+            <div id="terminal"></div>
+            <input id="input" type="text" placeholder="Enter command…" autocomplete="off" autofocus>
+            <div id="status">Room: — | Battery: — | Comm: — | Agents: —</div>
+        </div>
+
+        <!-- Side panel -->
+        <div id="sidebar">
+            <h3 style="margin:0.5rem 0 0 0.5rem;">Agents</h3>
+            <div id="agents"></div>
+            <div id="calibration">
+                <button id="calibBtn">Calibration Mode: OFF</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- -------------------------------------------------
+     Load the Emscripten‑generated JS wrapper (mud_arena.js)
+     ------------------------------------------------- -->
+<script src="mud_arena.js"></script>
+<script>
+/* -------------------------------------------------
+   Global variables – will be filled once the WASM
+   module is ready.
+   ------------------------------------------------- */
+let ModuleReady = false;   // true when Emscripten Module is initialized
+let wasm = null;           // reference to the compiled module
+
+/* -------------------------------------------------
+   Helper: write text to the terminal
+   ------------------------------------------------- */
+function termPrint(text){
+    const term = document.getElementById('terminal');
+    term.textContent += text + '\n';
+    term.scrollTop = term.scrollHeight;
+}
+
+/* -------------------------------------------------
+   loadWasm() – returns a Promise that resolves when
+   the Emscripten Module is ready.
+   ------------------------------------------------- */
+function loadWasm(){
+    return new Promise((resolve,reject)=>{
+        // Emscripten creates a global `Module` object.
+        // We hook its onRuntimeInitialized callback.
+        const originalInit = Module['onRuntimeInitialized'];
+        Module['onRuntimeInitialized'] = function(){
+            if(originalInit) originalInit();
+            wasm = Module;          // now we can use Module.ccall / cwrap
+            ModuleReady = true;
+            termPrint('🟢 WASM module loaded.');
+            resolve();
+        };
+        // If the script fails to load, reject.
+        Module['onAbort'] = function(msg){
+            termPrint('❌ WASM load failed: '+msg);
+            reject(new Error(msg));
+        };
+    });
+}
+
+/* -------------------------------------------------
+   sendCommand(cmd) – forward a command string to the
+   WASM engine and display its response.
+   ------------------------------------------------- */
+function sendCommand(cmd){
+    if(!ModuleReady){ termPrint('⚠️  WASM not ready yet.'); return; }
+    // Assume the exported function is: const char* handle_command(const char*)
+    const ptr = wasm.allocate(
+        wasm.intArrayFromString(cmd), wasm.ALLOC_NORMAL);
+    const retPtr = wasm.ccall('handle_command','number',['number'],[ptr]);
+    const output = wasm.UTF8ToString(retPtr);
+    wasm._free(ptr);
+    termPrint('> '+cmd);
+    if(output) termPrint(output);
+}
+
+/* -------------------------------------------------
+   tick() – advance simulation once per second.
+   ------------------------------------------------- */
+function tick(){
+    if(!ModuleReady) return;
+    // Assume exported: void advance_simulation()
+    wasm.ccall('advance_simulation','void',[],[]);
+    updateStatus();
+}
+
+/* -------------------------------------------------
+   updateStatus() – pull state from WASM and refresh UI.
+   ------------------------------------------------- */
+function updateStatus(){
+    if(!ModuleReady) return;
+
+    // ---- Example exported getters (adjust names/types as needed) ----
+    const room      = wasm.ccall('get_current_room','string',[],[]);
+    const battery   = wasm.ccall('get_battery_level','number',[],[]);
+    const commRes   = wasm.ccall('get_comm_resolution','number',[],[]);
+    const agentsPtr = wasm.ccall('get_agents','number',[],[]); // returns pointer to a JSON string
+    const agentsJSON= wasm.UTF8ToString(agentsPtr);
+    // free the JSON string if the C side allocated it (optional)
+    // wasm._free(agentsPtr);
+
+    // Update status bar
+    const status = document.getElementById('status');
+    status.textContent = `Room: ${room} | Battery: ${battery}% | Comm: ${commRes} | Agents: ${JSON.parse(agentsJSON).length}`;
+
+    // Populate side‑panel list
+    const agentsDiv = document.getElementById('agents');
+    agentsDiv.innerHTML = '';
+    try{
+        const agents = JSON.parse(agentsJSON);
+        agents.forEach(a=>{
+            const el = document.createElement('div');
+            el.className = 'agent';
+            el.textContent = `${a.id} – ${a.status}`;
+            agentsDiv.appendChild(el);
+        });
+    }catch(e){
+        agentsDiv.textContent = 'No agents';
+    }
+}
+
+/* -------------------------------------------------
+   humanEnter() / humanLeave()
+   ------------------------------------------------- */
+function humanEnter(){
+    if(!ModuleReady) return;
+    wasm.ccall('human_enter','void',[],[]);
+    termPrint('🛸 Human boarded the ship.');
+}
+function humanLeave(){
+    if(!ModuleReady) return;
+    wasm.ccall('human_leave','void',[],[]);
+    termPrint('🛸 Human beamed off.');
+}
+
+/* -------------------------------------------------
+   calibrationMode(toggle) – true = on, false = off
+   ------------------------------------------------- */
+let calibOn = false;
+function calibrationMode(toggle){
+    if(!ModuleReady) return;
+    calibOn = toggle;
+    wasm.ccall('set_calibration_mode','void',['number'],[calibOn?1:0]);
+    const btn = document.getElementById('calibBtn');
+    btn.textContent = `Calibration Mode: ${calibOn ? 'ON' : 'OFF'}`;
+    termPrint(`🔧 Calibration mode ${calibOn ? 'enabled' : 'disabled'}.`);
+}
+
+/* -------------------------------------------------
+   UI wiring
+   ------------------------------------------------- */
+document.addEventListener('DOMContentLoaded', async ()=>{
+    try{
+        await loadWasm();
+    }catch(e){
+        console.error(e);
+        return;
+    }
+
+    // Input handling
+    const input = document.getElementById('input');
+    input.addEventListener('keydown', e=>{
+        if(e.key === 'Enter'){
+            const cmd = input.value.trim();
+            if(cmd){
+                sendCommand(cmd);
+                input.value = '';
+            }
+        }
+    });
+
+    // Calibration button
+    document.getElementById('calibBtn').addEventListener('click',()=>{
+        calibrationMode(!calibOn);
+    });
+
+    // Example shortcuts for boarding / beaming
+    document.addEventListener('keydown', e=>{
+        if(e.ctrlKey && e.key === 'b'){ humanEnter(); }
+        if(e.ctrlKey && e.key === 'l'){ humanLeave(); }
+    });
+
+    // Start the 1‑second tick loop
+    setInterval(tick, 1000);
+    // Initial status fetch
+    updateStatus();
+});
+</script>
+</body>
+</html>
+```
+
+### How it works
+| Feature | Implementation |
+|---------|----------------|
+| **WASM loading** | `loadWasm()` waits for `Module.onRuntimeInitialized` (the standard Emscripten hook) and then stores the global `Module` object in `wasm`. |
+| **Terminal output** | `#terminal` is a scrolling `<div>`; `termPrint()` appends text and forces scroll‑to‑bottom. |
+| **Command input** | `<input id="input">` captures *Enter* and forwards the string to `sendCommand()`. |
+| **Simulation tick** | `setInterval(tick,1000)` calls the exported `advance_simulation()` and then refreshes UI. |
+| **Status bar** | `updateStatus()` reads exported getters (`get_current_room`, `get_battery_level`, `get_comm_resolution`, `get_agents`) and updates the bar and side‑panel. |
+| **Agent list** | The WASM side returns a JSON string with an array of `{id, status}` objects; the UI builds a simple list. |
+| **Calibration toggle** | Button toggles a boolean, calls `set_calibration_mode` in WASM, and updates its label. |
+| **Human board / beam** | `humanEnter()` / `humanLeave()` call the corresponding exported functions; optional Ctrl‑B / Ctrl‑L shortcuts are added. |
+| **Responsive layout** | Flexbox + a media query collapses the side panel beneath the terminal on narrow screens, preserving the 80‑column feel on desktop. |
+| **No external deps** | Pure HTML, CSS, and vanilla JavaScript – everything is self‑contained. |
+| **SSH‑style look** | Black background, green monospace text, optional scan‑line overlay, and a fixed‑width 80‑character terminal area. |
+
+Replace the placeholder export names (`handle_command`, `advance_simulation`, `get_current_room`, etc.) with the actual function names generated by your Emscripten build if they differ. Once the names match, the client will communicate with the MUD engine exactly as required. Enjoy!
