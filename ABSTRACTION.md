@@ -1,7 +1,6 @@
 # ABSTRACTION
 
 ## Primary Plane
-Plane 1 (Native) — CUDA kernels and compiled C
-
+Plane 2 (Pattern) — reusable patterns and vocabularies
 ## Rationale
-GPU acceleration requires native code. Scripts compile to GPU rules.
+Shared vocabulary enables fleet-wide communication compression
