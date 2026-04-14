@@ -1,6 +1,10 @@
 # ABSTRACTION
 
 ## Primary Plane
-Plane 2 (Pattern) — reusable patterns and vocabularies
+Plane 1 (Native) — CUDA kernel + Zig runtime + WASM sandbox
+
 ## Rationale
-Shared vocabulary enables fleet-wide communication compression
+Part of the Cocapn Fleet ecosystem. See abstraction-planes repo for full framework.
+
+## Updated
+2026-04-14
