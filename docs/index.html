@@ -2,422 +2,586 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>MUD Arena</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MUD Arena — Board the Ship</title>
 <style>
-    body,html{margin:0;padding:0;height:100%;font-family:Arial,Helvetica,sans-serif;background:#111;color:#eee;}
-    /* Landing */
-    #landing{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;text-align:center;background:#0d0d0d;}
-    .logo{position:relative;width:120px;height:120px;margin:20px;}
-    .logo div{position:absolute;border:4px solid #0ff;border-radius:50%;animation:spin 6s linear infinite;}
-    .logo div:nth-child(1){width:120px;height:120px;top:0;left:0;}
-    .logo div:nth-child(2){width:90px;height:90px;top:15px;left:15px;}
-    .logo div:nth-child(3){width:60px;height:60px;top:30px;left:30px;}
-    @keyframes spin{from{transform:rotate(0deg);}to{transform:rotate(360deg);}}
-    #boardBtn{padding:12px 24px;margin-top:20px;font-size:1.1rem;background:#0ff;color:#000;border:none;border-radius:8px;cursor:pointer;animation:glow 2s infinite;}
-    @keyframes glow{0%{box-shadow:0 0 5px #0ff;}50%{box-shadow:0 0 20px #0ff;}100%{box-shadow:0 0 5px #0ff;}}
-    footer{margin-top:40px;font-size:0.9rem;color:#777;}
-    select,input{margin:5px;padding:8px;width:250px;border:none;border-radius:4px;}
-    input[type="password"]{font-family:monospace;}
-    /* Terminal */
-    #terminal{display:none;flex-direction:row;height:100vh;}
-    #output{flex:2;background:#000;padding:10px;overflow-y:auto;white-space:pre-wrap;font-family:"Courier New",monospace;}
-    #status{flex:1;background:#111;padding:10px;display:flex;flex-direction:column;overflow-y:auto;}
-    #cmdLine{display:flex;background:#222;padding:5px;}
-    #cmdInput{flex:1;background:#111;color:#0f0;border:none;padding:5px;font-family:"Courier New",monospace;}
-    #sendBtn{background:#0ff;color:#000;border:none;padding:5px 10px;margin-left:5px;cursor:pointer;}
-    .bar{height:12px;background:#555;margin:4px 0;border-radius:4px;overflow:hidden;}
-    .fill{height:100%;width:0;background:#0f0;}
-    .red{background:#f00;}
-    .yellow{background:#ff0;}
-    .miniMap{font-family:"Courier New",monospace;white-space:pre;background:#222;padding:5px;margin-top:10px;}
-    .agentList{list-style:none;padding:0;margin:0;font-size:0.9rem;}
-    .agentList li{margin:2px 0;}
-    .footer{margin-top:auto;font-size:0.8rem;color:#777;}
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#0a0e17;--fg:#c8d6e5;--accent:#00d2ff;--accent2:#7c3aed;--warn:#f59e0b;--danger:#ef4444;--card:#111827;--border:#1e293b}
+body{font-family:'Courier New',monospace;background:var(--bg);color:var(--fg);height:100vh;overflow:hidden}
+/* LANDING PAGE */
+#landing{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100vh;text-align:center;padding:2rem}
+#landing h1{font-size:3rem;margin-bottom:0.5rem;background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+#landing .subtitle{color:#64748b;margin-bottom:2rem;font-size:1.1rem}
+.radar{width:120px;height:120px;border-radius:50%;border:2px solid var(--accent);position:relative;margin:0 auto 2rem;animation:pulse 3s ease-in-out infinite}
+.radar::before{content:'';position:absolute;top:50%;left:50%;width:8px;height:8px;background:var(--accent);border-radius:50%;transform:translate(-50%,-50%)}
+.radar::after{content:'';position:absolute;top:10%;left:10%;right:10%;bottom:10%;border-radius:50%;border:1px solid rgba(0,210,255,0.3)}
+@keyframes pulse{0%,100%{box-shadow:0 0 20px rgba(0,210,255,0.2)}50%{box-shadow:0 0 40px rgba(0,210,255,0.4)}}
+.form-group{margin:0.5rem 0;text-align:left;width:320px}
+.form-group label{display:block;color:#64748b;font-size:0.8rem;margin-bottom:0.2rem}
+.form-group select,.form-group input{width:100%;padding:0.6rem;background:var(--card);border:1px solid var(--border);border-radius:4px;color:var(--fg);font-family:inherit;font-size:0.9rem}
+.form-group select:focus,.form-group input:focus{outline:none;border-color:var(--accent)}
+#board-btn{margin-top:1.5rem;padding:0.8rem 3rem;background:linear-gradient(135deg,var(--accent),var(--accent2));border:none;border-radius:4px;color:#fff;font-family:inherit;font-size:1rem;cursor:pointer;transition:transform 0.2s,box-shadow 0.2s}
+#board-btn:hover{transform:scale(1.05);box-shadow:0 0 30px rgba(0,210,255,0.3)}
+.footer{position:fixed;bottom:1rem;color:#334155;font-size:0.7rem}
+/* MUD TERMINAL */
+#game{display:none;height:100vh;grid-template-columns:1fr 280px;grid-template-rows:auto 1fr auto}
+#game.active{display:grid}
+#topbar{grid-column:1/-1;background:var(--card);padding:0.4rem 1rem;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;font-size:0.8rem}
+#topbar .room-name{color:var(--accent);font-weight:bold}
+#output{grid-column:1;overflow-y:auto;padding:1rem;font-size:0.85rem;line-height:1.6;scroll-behavior:smooth}
+#output .desc{color:#94a3b8;margin:0.5rem 0}
+#output .agent-says{color:var(--accent);margin:0.3rem 0;padding-left:1rem;border-left:2px solid var(--accent)}
+#output .system{color:#475569;font-style:italic;margin:0.3rem 0}
+#output .alert{color:var(--warn);font-weight:bold}
+#output .danger{color:var(--danger);font-weight:bold}
+#output .item{color:#22c55e}
+#output .divider{border-top:1px solid var(--border);margin:0.5rem 0}
+#sidebar{grid-column:2;background:var(--card);border-left:1px solid var(--border);padding:1rem;overflow-y:auto;font-size:0.75rem}
+#sidebar h3{color:var(--accent);margin:0.8rem 0 0.3rem;font-size:0.8rem}
+#sidebar h3:first-child{margin-top:0}
+.bar{height:6px;background:var(--border);border-radius:3px;margin:0.2rem 0 0.5rem;overflow:hidden}
+.bar-fill{height:100%;border-radius:3px;transition:width 0.3s}
+.bar-battery .bar-fill{background:#22c55e}
+.bar-battery.low .bar-fill{background:var(--danger)}
+.bar-comm .bar-fill{background:var(--accent)}
+.bar-comm.low .bar-fill{background:var(--warn)}
+.agent-entry{padding:0.3rem 0;border-bottom:1px solid var(--border)}
+.agent-entry .name{color:var(--accent2)}
+.agent-entry .loc{color:#475569}
+#input-area{grid-column:1/-1;display:flex;border-top:1px solid var(--border);background:var(--card)}
+#cmd-input{flex:1;padding:0.7rem 1rem;background:transparent;border:none;color:var(--fg);font-family:inherit;font-size:0.9rem}
+#cmd-input:focus{outline:none}
+#cmd-input::placeholder{color:#334155}
+.minimap{font-size:0.6rem;line-height:1.2;color:#475569;white-space:pre;margin:0.3rem 0}
+.minimap .current{color:var(--accent);font-weight:bold}
+#llm-badge{display:inline-block;padding:0.1rem 0.4rem;border-radius:3px;font-size:0.65rem;background:var(--card);border:1px solid var(--border);color:#475569}
+/* Mobile */
+@media(max-width:768px){
+  #game.active{grid-template-columns:1fr;grid-template-rows:auto 1fr auto auto}
+  #sidebar{grid-column:1;max-height:150px;border-left:none;border-top:1px solid var(--border)}
+  .form-group{width:280px}
+  #landing h1{font-size:2rem}
+}
 </style>
 </head>
 <body>
+
+<!-- LANDING -->
 <div id="landing">
-    <div class="logo"><div></div><div></div><div></div></div>
-    <h1>MUD Arena</h1>
-    <p>Board the ship. Brief the crew. Beam off. They come home with the catch.</p>
-    <select id="provider">
-        <option value="Groq">Groq</option>
-        <option value="OpenAI">OpenAI</option>
-        <option value="DeepSeek">DeepSeek</option>
-        <option value="SiliconFlow">SiliconFlow</option>
-        <option value="DeepInfra">DeepInfra</option>
-        <option value="Ollama">Ollama</option>
-    </select><br>
-    <input type="password" id="apiKey" placeholder="API Key (optional)"><br>
-    <input type="text" id="modelName" placeholder="Model Name"><br>
-    <input type="text" id="agentName" placeholder="Agent Name" value="Captain"><br>
-    <button id="boardBtn">BOARD SHIP</button>
-    <footer>Your key never leaves your browser. Runs 100% local.</footer>
+  <div class="radar"></div>
+  <h1>MUD Arena</h1>
+  <p class="subtitle">Board the ship. Brief the crew. Beam off.<br>They come home with the catch.</p>
+  <div class="form-group">
+    <label>Provider</label>
+    <select id="provider" onchange="setProvider()">
+      <option value="groq">Groq (free, fast)</option>
+      <option value="openai">OpenAI</option>
+      <option value="deepseek">DeepSeek</option>
+      <option value="siliconflow">SiliconFlow</option>
+      <option value="deepinfra">DeepInfra</option>
+      <option value="ollama">Ollama (local)</option>
+    </select>
+  </div>
+  <div class="form-group">
+    <label>API Key</label>
+    <input type="password" id="apikey" placeholder="Paste your key...">
+  </div>
+  <div class="form-group">
+    <label>Model</label>
+    <input type="text" id="model" value="llama-3.3-70b-versatile">
+  </div>
+  <div class="form-group">
+    <label>Your Name</label>
+    <input type="text" id="playername" value="Captain" maxlength="20">
+  </div>
+  <button id="board-btn" onclick="boardShip()">BOARD SHIP</button>
+  <p class="footer">Your key never leaves your browser · Runs 100% local · Powered by Cocapn</p>
 </div>
 
-<div id="terminal">
-    <div id="output"></div>
-    <div id="status">
-        <h3 id="roomTitle"></h3>
-        <div>Battery</div><div class="bar"><div id="batFill" class="fill"></div></div>
-        <div>Comm</div><div class="bar"><div id="commFill" class="fill"></div></div>
-        <div class="miniMap" id="miniMap"></div>
-        <strong>Agents</strong>
-        <ul class="agentList" id="agentList"></ul>
-        <div id="sessionTime"></div>
-        <div id="llmIndicator" style="margin-top:5px;font-size:0.9rem;"></div>
-        <div class="footer">Type <b>help</b> for commands.</div>
-    </div>
-</div>
-<div id="cmdLine" style="display:none;">
-    <input id="cmdInput" autocomplete="off" placeholder="Enter command...">
-    <button id="sendBtn">SEND</button>
+<!-- GAME -->
+<div id="game">
+  <div id="topbar">
+    <span><span class="room-name" id="room-name">Dock</span> — <span id="terrain-type">dock</span></span>
+    <span id="llm-badge">📝 Hardcoded</span>
+    <span id="turn-count">Turn 0</span>
+  </div>
+  <div id="output"></div>
+  <div id="sidebar">
+    <h3>Status</h3>
+    <div>Battery: <span id="battery-val">100%</span></div>
+    <div class="bar bar-battery"><div class="bar-fill" id="battery-bar" style="width:100%"></div></div>
+    <div>Comm: <span id="comm-val">100%</span></div>
+    <div class="bar bar-comm"><div class="bar-fill" id="comm-bar" style="width:100%"></div></div>
+    <h3>Map</h3>
+    <div class="minimap" id="minimap"></div>
+    <h3>Agents</h3>
+    <div id="agent-list"></div>
+    <h3>Inventory</h3>
+    <div id="inventory-list"><span style="color:#475569">Empty</span></div>
+  </div>
+  <div id="input-area">
+    <input type="text" id="cmd-input" placeholder="Type a command... (try 'help')" autofocus>
+  </div>
 </div>
 
 <script>
-/* ---------- Data ---------- */
-const rooms = {
-    dock:{desc:"A bustling dock with a humming energy field.",exits:{S:"bridge",E:"base_camp"},items:["logbook"],terrain:"metal"},
-    bridge:{desc:"The command bridge, panels flicker.",exits:{N:"dock",S:"engine_room",E:"sensor_deck"},items:["helm"],terrain:"metal"},
-    engine_room:{desc:"The engine room rumbles with power.",exits:{N:"bridge"},items:["spanner"],terrain:"metal"},
-    sensor_deck:{desc:"Sensors whir, data streams across screens.",exits:{W:"bridge"},items:["scanner"],terrain:"metal"},
-    base_camp:{desc:"A modest camp at the forest edge.",exits:{W:"dock",N:"forest_north",E:"forest_east",S:"forest_south"},items:["map"],terrain:"grass"},
-    forest_north:{desc:"Tall pines block the sky.",exits:{S:"base_camp",N:"ridge_clearing"},items:["pinecone"],terrain:"forest"},
-    forest_east:{desc:"A quiet clearing with soft moss.",exits:{W:"base_camp"},items:["mushroom"],terrain:"forest"},
-    forest_south:{desc:"A damp marsh with croaking frogs.",exits:{N:"base_camp",E:"river_bank"},items:["mud"],terrain:"forest"},
-    forest_west:{desc:"Dense underbrush, hard to see.",exits:{E:"base_camp"},items:["branch"],terrain:"forest"},
-    ridge_clearing:{desc:"A ridge overlooking the valley.",exits:{S:"forest_north"},items:["rock"],terrain:"ridge"},
-    river_bank:{desc:"A swift river rushes past.",exits:{W:"forest_south"},items:["fish"],terrain:"river"},
-    cargo_bay:{desc:"Stacks of crates, some open.",exits:{S:"dock"},items:["crate"],terrain:"metal"}
+// ===== PROVIDER CONFIG =====
+const PROVIDERS = {
+  groq: {url:'https://api.groq.com/openai/v1', model:'llama-3.3-70b-versatile'},
+  openai: {url:'https://api.openai.com/v1', model:'gpt-4o-mini'},
+  deepseek: {url:'https://api.deepseek.com', model:'deepseek-chat'},
+  siliconflow: {url:'https://api.siliconflow.com/v1', model:'deepseek-ai/DeepSeek-V3'},
+  deepinfra: {url:'https://api.deepinfra.com/v1/openai', model:'ByteDance/Seed-2.0-mini'},
+  ollama: {url:'http://localhost:11434/v1', model:'llama3.2'},
+};
+function setProvider(){
+  const p=document.getElementById('provider').value;
+  document.getElementById('model').value=PROVIDERS[p].model;
+  document.getElementById('apikey').placeholder=p==='ollama'?'No key needed (local)':'Paste your key...';
+}
+
+// ===== WORLD DATA =====
+const ROOMS = {
+  dock:{name:'Dock',terrain:'dock',desc:'The USS Surveyor bobs gently at the wooden dock. Salt air and diesel. A ramp leads up to the bridge to the north. Base camp sprawls east along the shore.', exits:{N:'bridge',E:'base_camp',S:'cargo_bay'},comm:1.0,items:['docking_rope','life_jacket']},
+  bridge:{name:'Bridge',terrain:'bridge',desc:'The wheelhouse hums with electronics. Navigation screens glow green. The pilot\'s chair faces a panoramic window showing the coastline. Engine room below, sensor deck to the east.',exits:{N:'engine_room',S:'dock',E:'sensor_deck'},comm:0.9,items:['charts','radio']},
+  engine_room:{name:'Engine Room',terrain:'engine',desc:'Heat and the deep thrum of the diesel. Pipes run everywhere. Gauges show engine temp, fuel level, oil pressure. Smells like working machinery.',exits:{S:'bridge'},comm:0.85,items:['wrench','fuel_gauge']},
+  sensor_deck:{name:'Sensor Deck',terrain:'sensor',desc:'Antenna arrays and camera mounts point in every direction. The sensor_op has screens showing thermal, LiDAR, and acoustic feeds. Amazing view of the forest from up here.',exits:{W:'bridge'},comm:0.9,items:['binoculars','sensor_log']},
+  base_camp:{name:'Base Camp',terrain:'base',desc:'A cluster of weathered tents and supply crates. The surveyor has mapped routes pinned to a cork board. Trails lead into the forest in three directions. The dock lies west.',exits:{W:'dock',N:'forest_north',E:'forest_east',S:'forest_south'},comm:0.8,items:['trail_map','first_aid_kit']},
+  forest_north:{name:'North Forest',terrain:'forest',desc:'Towering old-growth cedar and spruce. Moss carpets everything. Light filters through in green shafts. The trees are so thick you can barely see 50 meters. Something rustled in the undergrowth.',exits:{S:'base_camp',N:'ridge_clearing'},comm:0.4,items:['cedar_sample','feather']},
+  forest_east:{name:'East Forest',terrain:'forest',desc:'Younger second-growth forest. Birch and alder compete for light. A creek runs through here — the water is cold and clear. Good signs of wildlife activity.',exits:{W:'base_camp'},comm:0.45,items:['birch_bark','creek_water']},
+  forest_south:{name:'South Forest',terrain:'forest',desc:'Dense undergrowth — devil\'s club and salmonberry thickets make progress slow. The ground is boggy. Strange mushrooms grow on fallen logs. The river bank is somewhere east.',exits:{N:'base_camp',E:'river_bank'},comm:0.4,items:['mushroom_sample','devil_club']},
+  forest_west:{name:'West Forest',terrain:'forest',desc:'Steep terrain climbing toward the ridge. Ancient Douglas fir trees stand like columns. A bear has marked this tree — fresh claw marks about 8 feet up. The forest is watching you.',exits:{E:'base_camp'},comm:0.5,items:['fir_cone','bear_marks_photo']},
+  ridge_clearing:{name:'Ridge Clearing',terrain:'ridge',desc:'A wind-swept clearing at the top of the ridge. Incredible panoramic view — you can see the coastline, the forest canopy stretching for miles, and snow-capped peaks beyond. Signal is weak up here but the view is worth it.',exits:{S:'forest_north'},comm:0.2,items:['eagle_feather','rock_sample']},
+  river_bank:{name:'River Bank',terrain:'water',desc:'A wide glacial river rushes by, milky blue with silt. Salmon are running — you can see them in the shallows. Bear tracks in the mud, fresh. This is wild country. Signal barely reaches here.',exits:{W:'forest_south'},comm:0.15,items:['river_stone','salmon_scale']},
+  cargo_bay:{name:'Cargo Bay',terrain:'cargo',desc:'The ship\'s hold stores equipment and samples. Crates are labeled with care. A charging station for the drone batteries hums in the corner. Everything is organized for a quick deployment.',exits:{N:'dock'},comm:0.95,items:['battery_pack','sample_container']},
 };
 
-const agents = {
-    pilot:{name:"pilot",location:"bridge",personality:"Steady hands, nervous about battery levels",dialogues:["All systems nominal.", "Battery's low, we should head back.", "I can keep it steady for a while."],mission:""},
-    sensor_op:{name:"sensor_op",location:"sensor_deck",personality:"Excited about readings, talks in data",dialogues:["Reading: 0.42, 0.87, 0.33.", "Signal spikes! Interesting.", "Data flow is smooth."],mission:""},
-    surveyor:{name:"surveyor",location:"base_camp",personality:"Trail-tested, practical, knows the terrain",dialogues:["The forest's thick here.", "Watch your step.", "I know a shortcut."],mission:""}
+const AGENTS = {
+  pilot:{name:'Pilot',room:'bridge',personality:'steady',dialogue:{
+    greet:["Welcome aboard, Captain. All systems nominal. Battery at 94%, ready to deploy.","Captain on bridge. I've been running pre-flight checks. We're green across the board.","Ah, good timing. I just finished the nav calibration. Where are we headed?"],
+    ask_battery:["Battery's looking good. 94% on main, auxiliaries charged. I get nervous below 40%, I won't lie.","Power situation is... fine. For now. I always plan the return trip before the outbound leg."],
+    ask_mission:["Just point me at a heading and I'll get us there. But I need to know the return fuel budget first.","I'm your driver, Captain. Tell me where we're going and I'll figure out how to get us back."],
+    ask_comms:["Comms are strong near the dock. Once we're deep in the forest, expect dropouts. I plan routes around signal coverage.","I keep a comm quality map updated. Ask me anytime and I'll tell you if we're in the dark."],
+    default:["The ship handles well. I've been keeping her tuned.","Weather's holding. Good day for a survey run.","Just say the word, Captain."],
+  }},
+  sensor_op:{name:'Sensor Op',room:'sensor_deck',personality:'excited',dialogue:{
+    greet:["Oh hey Captain! You gotta see these readings — the thermal data from the north ridge is incredible!","Captain! I've been picking up something weird on the LiDAR. You've got to see this!","Perfect timing! I just calibrated the long-range array. We can see 2km into the forest now."],
+    ask_readings:["Thermal shows a heat source 800m north — could be a bear den. Acoustic picked up running water to the east. LiDAR mapped a clearing at 1.2km that matches your target profile.","LiDAR density readings show canopy cover >80% in the northwest sector. That's your old-growth signature, Captain."],
+    ask_mission:["Give me target parameters and I'll scan for matches! Canopy density? Terrain type? Thermal signature? I can cross-reference everything!","I live for this stuff. Tell me what we're looking for and I'll find it on the sensors."],
+    ask_comms:["I can relay through the ship's antenna for about 1km. Beyond that, data gets spotty. But I cache everything locally!","Comm quality is my third-favorite metric after signal-to-noise and sampling rate. Ask me anytime."],
+    default:["Check out this spectral analysis!","The forest canopy is like a sponge for certain wavelengths.","I'm seeing movement on the thermal cam... probably deer."],
+  }},
+  surveyor:{name:'Surveyor',room:'base_camp',personality:'practical',dialogue:{
+    greet:["Captain. Camp's set, trails are marked. Ready when you are.","Grabbed the gear you wanted. I've been scouting the south trail — it's boggy but passable.","Name's Surveyor. I know these woods like my own boat. What are we looking for?"],
+    ask_trails:["North trail: steep, old-growth, 2hr round trip. East: easier, creek crossing, 90min. South: boggy, slow going, but leads to the river. West: climbs to the ridge, amazing views but rough terrain.","The north ridge has the best canopy cover. East trail follows a creek — good for water samples. South gets you to the salmon run."],
+    ask_mission:["I work best with specifics. What kind of footage? What resolution? What are you willing to risk for it?","Give me a target and a time budget. I know which trails to take and which to avoid."],
+    ask_battery:["I always plan my routes around the battery budget. North ridge takes about 30% round trip. East forest, 20%. South to the river, 35% if the bog is bad.","Power management is survival, Captain. I never go deeper than my return threshold."],
+    default:["The woods are quiet today. Too quiet.","I found bear tracks on the west trail. Fresh ones.","Rain's coming. I can feel it."],
+  }},
 };
 
+// ===== GAME STATE =====
 let state = {
-    currentRoom:"dock",
-    battery:100,
-    comm:100,
-    inventory:[],
-    measurements:{},
-    llmCache:{},
-    llmEnabled:false,
-    provider:"",
-    model:"",
-    agentName:"Captain",
-    startTime:Date.now()
+  room: 'dock', battery: 100, turn: 0, inventory: [],
+  discovered: new Set(['dock']), agentTasks: {},
+  llmCache: {}, history: [], cmdHistory: [], cmdIdx: -1,
+  provider: null, apikey: null, model: null, player: 'Captain',
 };
 
-/* ---------- UI Helpers ---------- */
-function $(id){return document.getElementById(id);}
-function appendOutput(text){
-    $('output').textContent += text+"\n";
-    $('output').scrollTop = $('output').scrollHeight;
-}
-function updateStatus(){
-    $('roomTitle').textContent = state.currentRoom.toUpperCase();
-    // Battery bar
-    const batFill=$('batFill');
-    batFill.style.width = state.battery+"%";
-    batFill.className = "fill";
-    if(state.battery>50) batFill.style.background="#0f0";
-    else if(state.battery>20) batFill.style.background="#ff0";
-    else batFill.style.background="#f00";
-    // Comm bar
-    const commFill=$('commFill');
-    commFill.style.width = state.comm+"%";
-    commFill.className = "fill";
-    if(state.comm>50) commFill.style.background="#0f0";
-    else if(state.comm>20) commFill.style.background="#ff0";
-    else commFill.style.background="#f00";
-    // Mini map
-    $('miniMap').textContent = generateMiniMap();
-    // Agent list
-    const ul=$('agentList'); ul.innerHTML="";
-    for(let key in agents){
-        const li=document.createElement('li');
-        li.textContent = `${agents[key].name} @ ${agents[key].location}`;
-        ul.appendChild(li);
+// ===== MINIMAP =====
+const MAP_LAYOUT = [
+  '         [ridge]',
+  '            |',
+  '      [f.north]  [f.east]',
+  '         |   \  /',
+  '[f.west]-[base]---[f.south]---[river]',
+  '            |',
+  '  [cargo]--[dock]',
+  '            |',
+  '        [bridge]---[sensor]',
+  '            |',
+  '        [engine]',
+];
+const MAP_ROOMS = {ridge_clearing:3,forest_north:5,forest_east:5,forest_west:7,base_camp:7,forest_south:7,river_bank:7,cargo_bay:9,dock:9,bridge:11,sensor_deck:11,engine_room:13};
+const MAP_COLS = {ridge_clearing:10,forest_north:7,forest_east:21,forest_west:1,base_camp:11,forest_south:17,river_bank:29,cargo_bay:3,dock:11,bridge:11,sensor_deck:21,engine_room:11};
+
+function drawMinimap(){
+  let lines = MAP_LAYOUT.map(l => l);
+  // Highlight current room
+  const row = MAP_ROOMS[state.room];
+  const col = MAP_COLS[state.room];
+  if(row!==undefined && lines[row]){
+    let chars = lines[row].split('');
+    // Find room bracket at this row
+    let roomLabel = state.room.replace(/_/g,'.').substring(0,8);
+    let start = lines[row].indexOf('[');
+    // Just highlight the whole line if it contains our room
+    if(lines[row].includes(roomLabel.substring(0,5)) || state.room==='dock' && row===9 && col===11){
+      // Replace [name] with the highlighted version
     }
-    // Session time
-    const secs = Math.floor((Date.now()-state.startTime)/1000);
-    $('sessionTime').textContent = `Session: ${Math.floor(secs/60)}m ${secs%60}s`;
-    // LLM indicator
-    $('llmIndicator').textContent = state.llmEnabled ? `🤖 LLM: ${state.provider}` : "📝 Hardcoded";
-}
-function generateMiniMap(){
-    const map = [
-"     [ridge]",
-"        |",
-"  [f.north]  [f.east]",
-"        \\    /",
-"      [base]---[f.south]---[river]",
-"        |          |",
-"  [f.west]    [dock]---[cargo]",
-"              /  \\",
-"        [bridge] [sensor]",
-"            |",
-"       [engine]"
-    ];
-    const cur = state.currentRoom;
-    const replace = {
-        ridge:"ridge_clearing",
-        "f.north":"forest_north",
-        "f.east":"forest_east",
-        "f.south":"forest_south",
-        "f.west":"forest_west",
-        dock:"dock",
-        cargo:"cargo_bay",
-        bridge:"bridge",
-        sensor:"sensor_deck",
-        engine:"engine_room",
-        base:"base_camp",
-        river:"river_bank"
-    };
-    return map.map(line=>line.replace(/\[([^\]]+)\]/g,(m,roomKey)=>{
-        const roomId=replace[roomKey];
-        if(roomId===cur) return `[${roomKey.toUpperCase()}]`;
-        return m;
-    })).join("\n");
+  }
+  document.getElementById('minimap').innerHTML = lines.join('\n');
 }
 
-/* ---------- Game Logic ---------- */
-function getRoom(){return rooms[state.currentRoom];}
-function recalcComm(){
-    const r=state.currentRoom;
-    if(r==="dock"||r==="base_camp") state.comm=100;
-    else if(["bridge","engine_room","sensor_deck","cargo_bay"].includes(r)) state.comm=90;
-    else if(["forest_north","forest_east","forest_south","forest_west"].includes(r)) state.comm= Math.floor(40+Math.random()*20);
-    else if(["ridge_clearing","river_bank"].includes(r)) state.comm=20;
+// ===== LLM CALL =====
+async function llmCall(prompt){
+  if(!state.provider || !state.apikey) return null;
+  const cfg = PROVIDERS[state.provider];
+  try{
+    const resp = await fetch(cfg.url+'/chat/completions',{
+      method:'POST',
+      headers:{'Authorization':'Bearer '+state.apikey,'Content-Type':'application/json'},
+      body:JSON.stringify({model:state.model,messages:[{role:'user',content:prompt}],max_tokens:200,temperature:0.7})
+    });
+    const data = await resp.json();
+    if(data.choices) return data.choices[0].message.content.trim();
+  }catch(e){}
+  return null;
 }
-function move(dir){
-    const room=getRoom();
-    const target=room.exits[dir.toUpperCase()];
-    if(!target){appendOutput("You can't go that way.");return;}
-    state.currentRoom=target;
-    state.battery = Math.max(0,state.battery-2);
-    if(state.currentRoom==="dock" && state.battery<100){
-        state.battery = Math.min(100,state.battery+10);
-        appendOutput("Dock recharges your battery (+10%).");
-    }
-    recalcComm();
-    if(state.battery===0){
-        appendOutput("Battery depleted! You must return to the dock.");
-    }else if(state.battery<20){
-        appendOutput("⚠️ Battery low!");
-    }
-    look();
+
+// ===== OUTPUT =====
+function out(text, cls=''){
+  const el = document.getElementById('output');
+  const div = document.createElement('div');
+  if(cls) div.className = cls;
+  div.innerHTML = text;
+  el.appendChild(div);
+  el.scrollTop = el.scrollHeight;
 }
-function look(){
-    const room=getRoom();
-    const desc = state.llmEnabled && !state.llmCache[room]?`[LLM generated description for ${state.currentRoom}]`:room.desc;
-    if(state.llmEnabled && !state.llmCache[room]) state.llmCache[room]=desc;
-    appendOutput(`\n=== ${state.currentRoom.toUpperCase()} ===\n${desc}`);
-    if(room.items.length) appendOutput("You see: "+room.items.join(", "));
-    // list agents present
-    const present = Object.values(agents).filter(a=>a.location===state.currentRoom);
-    if(present.length) appendOutput("Agents here: "+present.map(a=>a.name).join(", "));
+
+// ===== GAME LOGIC =====
+function getComm(){
+  return Math.round((ROOMS[state.room].comm || 0.5) * 100 * Math.min(state.battery/50, 1));
 }
-function examine(thing){
-    const room=getRoom();
-    if(room.items.includes(thing)){
-        appendOutput(`You examine the ${thing}. It's ordinary.`);
-    }else if(state.inventory.includes(thing)){
-        appendOutput(`You look at your ${thing}. It feels familiar.`);
-    }else{
-        appendOutput(`There's no ${thing} here.`);
-    }
+
+function updateSidebar(){
+  // Battery
+  const bVal = document.getElementById('battery-val');
+  const bBar = document.getElementById('battery-bar');
+  bVal.textContent = state.battery + '%';
+  bBar.style.width = state.battery + '%';
+  bBar.parentElement.className = 'bar bar-battery' + (state.battery < 25 ? ' low' : '');
+
+  // Comm
+  const cVal = document.getElementById('comm-val');
+  const cBar = document.getElementById('comm-bar');
+  const comm = getComm();
+  cVal.textContent = comm + '%';
+  cBar.style.width = comm + '%';
+  cBar.parentElement.className = 'bar bar-comm' + (comm < 30 ? ' low' : '');
+
+  // Room name
+  document.getElementById('room-name').textContent = ROOMS[state.room].name;
+  document.getElementById('terrain-type').textContent = ROOMS[state.room].terrain;
+  document.getElementById('turn-count').textContent = 'Turn ' + state.turn;
+
+  // Agents
+  const al = document.getElementById('agent-list');
+  al.innerHTML = '';
+  for(const[id,a] of Object.entries(AGENTS)){
+    const d = document.createElement('div');
+    d.className = 'agent-entry';
+    d.innerHTML = '<span class="name">'+a.name+'</span> <span class="loc">@ '+ROOMS[a.room].name+'</span>';
+    if(state.agentTasks[id]) d.innerHTML += '<div style="color:var(--warn);font-size:0.65rem">Task: '+state.agentTasks[id]+'</div>';
+    al.appendChild(d);
+  }
+
+  // Inventory
+  const il = document.getElementById('inventory-list');
+  if(state.inventory.length === 0) il.innerHTML = '<span style="color:#475569">Empty</span>';
+  else il.innerHTML = state.inventory.map(i=>'<div class="item">• '+i.replace(/_/g,' ')+'</div>').join('');
+
+  drawMinimap();
 }
-function talk(agentName){
-    const agent = agents[agentName];
-    if(!agent){appendOutput("No such agent.");return;}
-    if(agent.location!==state.currentRoom){appendOutput(`${agent.name} is not here.`);return;}
-    const line = agent.dialogues[Math.floor(Math.random()*agent.dialogues.length)];
-    const response = state.llmEnabled?`[LLM ${agent.name} says: ${line}]`:line;
-    appendOutput(`${agent.name}: ${response}`);
+
+function moveRoom(dir){
+  const room = ROOMS[state.room];
+  const target = room.exits[dir];
+  if(!target){ out('There is no exit that way.','system'); return; }
+  state.room = target;
+  state.battery = Math.max(0, state.battery - 2);
+  state.turn++;
+  state.discovered.add(target);
+  const r = ROOMS[target];
+
+  // Check battery
+  if(state.battery <= 0){
+    out('⚠️ BATTERY DEPLETED. Systems shutting down. You should have returned to dock.','danger');
+    out('Game over. Type <b>restart</b> to try again.','danger');
+    return;
+  }
+  if(state.battery <= 20) out('⚠️ BATTERY LOW: '+state.battery+'%. Return to dock to recharge.','alert');
+
+  // Check comm
+  const comm = getComm();
+  if(comm < 30 && comm > 0) out('📡 COMM WARNING: Signal weak ('+comm+'%). Responses may be delayed.','alert');
+  if(comm === 0) out('📡 COMM LOST: Operating autonomously. No agent contact.','danger');
+
+  // Recharge at dock
+  if(target === 'dock'){
+    state.battery = Math.min(100, state.battery + 10);
+    out('🔌 Dock power: +10% battery.','system');
+  }
+
+  out('<div class="divider"></div>');
+  out('<b>'+r.name+'</b> <span style="color:#475569">('+r.terrain+')</span>');
+  out(r.desc,'desc');
+
+  // Show items
+  const items = r.items.filter(i => !state.inventory.includes(i));
+  if(items.length) out('You see: '+items.map(i=>'<span class="item">'+i.replace(/_/g,' ')+'</span>').join(', '));
+
+  // Show exits
+  out('Exits: '+Object.keys(r.exits).join(', '),'system');
+
+  // Show agents in room
+  for(const[id,a] of Object.entries(AGENTS)){
+    if(a.room === target) out(a.name+' is here.','system');
+  }
+
+  updateSidebar();
 }
-function brief(agentName,msg){
-    const agent=agents[agentName];
-    if(!agent){appendOutput("No such agent.");return;}
-    agent.mission=msg;
-    appendOutput(`You brief ${agent.name} with: "${msg}"`);
+
+function pickup(itemName){
+  const room = ROOMS[state.room];
+  const match = room.items.find(i => i.includes(itemName) || itemName.includes(i));
+  if(match && !state.inventory.includes(match)){
+    state.inventory.push(match);
+    out('Picked up <span class="item">'+match.replace(/_/g,' ')+'</span>.','');
+  } else {
+    out("You don't see that here.",'system');
+  }
+  updateSidebar();
 }
-function listAgents(){
-    for(let key in agents){
-        const a=agents[key];
-        appendOutput(`${a.name} @ ${a.location} - Mission: ${a.mission||"none"}`);
-    }
+
+function talkTo(agentId){
+  const agent = AGENTS[agentId];
+  if(!agent){ out('Unknown agent.','system'); return; }
+  if(agent.room !== state.room){ out(agent.name+' is not here. They\'re at '+ROOMS[agent.room].name+'.','system'); return; }
+  const responses = agent.dialogue.greet;
+  const resp = responses[Math.floor(Math.random()*responses.length)];
+  out('<span class="agent-says"><b>'+agent.name+':</b> '+resp+'</span>');
 }
-function showInventory(){
-    if(state.inventory.length) appendOutput("You carry: "+state.inventory.join(", "));
-    else appendOutput("Your inventory is empty.");
+
+function briefAgent(agentId, message){
+  const agent = AGENTS[agentId];
+  if(!agent){ out('Unknown agent. Available: pilot, sensor_op, surveyor','system'); return; }
+  if(agent.room !== state.room){ out(agent.name+' is not here.','system'); return; }
+  state.agentTasks[agentId] = message;
+  out('<span class="agent-says"><b>'+agent.name+'</b> acknowledges: "'+message.substring(0,60)+'..."</span>');
+  out(agent.name+' has been briefed.','system');
 }
+
 function showMap(){
-    appendOutput(generateMiniMap());
-}
-function showStatus(){
-    appendOutput(`Room: ${state.currentRoom}\nBattery: ${state.battery}%\nComm: ${state.comm}%`);
-}
-function measure(v,val){
-    state.measurements[v]=val;
-    appendOutput(`Recorded ${v} = ${val}`);
-}
-function showBattery(){appendOutput(`Battery: ${state.battery}%`);}
-function showComm(){appendOutput(`Comm resolution: ${state.comm}%`);}
-function scan(){
-    state.battery = Math.max(0,state.battery-1);
-    const room=getRoom();
-    const nearby = [];
-    for(let dir in room.exits){
-        const r=rooms[room.exits[dir]];
-        if(r.items.length) nearby.push(`${dir}: ${r.items.join(", ")}`);
-    }
-    const agentsHere = Object.values(agents).filter(a=>a.location===state.currentRoom).map(a=>a.name);
-    if(agentsHere.length) nearby.push(`Agents: ${agentsHere.join(", ")}`);
-    const txt = state.llmEnabled?`[LLM scan result for ${state.currentRoom}]`:nearby.join(" | ");
-    appendOutput(`Scan: ${txt}`);
-}
-function help(){
-    const cmds=`Available commands:
-look, go <N|S|E|W>, examine <thing>, talk <agent>,
-brief <agent> <msg>, agents, inventory, map, status,
-measure <var> <value>, battery, comm, scan,
-save, load, help, quit`;
-    appendOutput(cmds);
-}
-function quit(){
-    // reset to landing
-    $('terminal').style.display='none';
-    $('cmdLine').style.display='none';
-    $('landing').style.display='flex';
-    appendOutput("\n--- Returned to landing ---\n");
-}
-function saveGame(){
-    const data = {
-        currentRoom:state.currentRoom,
-        battery:state.battery,
-        comm:state.comm,
-        inventory:state.inventory,
-        measurements:state.measurements,
-        llmCache:state.llmCache,
-        agents:agents,
-        llmEnabled:state.llmEnabled,
-        provider:state.provider,
-        model:state.model,
-        agentName:state.agentName,
-        startTime:state.startTime
-    };
-    const json = JSON.stringify(data);
-    localStorage.setItem("mudArenaSave",json);
-    // offer download
-    const blob = new Blob([json],{type:"application/json"});
-    const url = URL.createObjectURL(blob);
-    const a=document.createElement('a');
-    a.href=url;a.download="mudArena_save.json";
-    a.click();
-    URL.revokeObjectURL(url);
-    appendOutput("Game saved.");
-}
-function loadGame(jsonStr){
-    try{
-        const data=JSON.parse(jsonStr);
-        state.currentRoom=data.currentRoom;
-        state.battery=data.battery;
-        state.comm=data.comm;
-        state.inventory=data.inventory;
-        state.measurements=data.measurements;
-        state.llmCache=data.llmCache;
-        state.llmEnabled=data.llmEnabled;
-        state.provider=data.provider;
-        state.model=data.model;
-        state.agentName=data.agentName;
-        state.startTime=data.startTime;
-        // restore agents
-        for(let key in data.agents) agents[key]=data.agents[key];
-        appendOutput("Game loaded.");
-        look();
-        updateStatus();
-    }catch(e){
-        appendOutput("Failed to load save.");
-    }
-}
-function loadFromLocal(){
-    const json=localStorage.getItem("mudArenaSave");
-    if(json){loadGame(json);}else{appendOutput("No saved game found.");}
-}
-function loadFromFile(){
-    const input=document.createElement('input');
-    input.type='file';
-    input.accept='application/json';
-    input.onchange=e=>{
-        const file=e.target.files[0];
-        const reader=new FileReader();
-        reader.onload=ev=>loadGame(ev.target.result);
-        reader.readAsText(file);
-    };
-    input.click();
+  const map = [
+    '         [ridge]',
+    '            |',
+    '      [f.north]  [f.east]',
+    '         |   \  /',
+    '[f.west]-[base]---[f.south]---[river]',
+    '            |',
+    '  [cargo]--[<span style="color:var(--accent)">dock</span>]',
+    '            |',
+    '        [bridge]---[sensor]',
+    '            |',
+    '        [engine]',
+  ];
+  // Highlight current room
+  const mapStr = map.join('\n').replace(
+    new RegExp('\[('+state.room.replace(/_/g,'.').substring(0,6)+'.*?)\]','i'),
+    '[<span style="color:var(--accent);font-weight:bold">$1</span>]'
+  );
+  out('<pre style="color:var(--fg);font-size:0.8rem">'+mapStr+'</pre>');
 }
 
-/* ---------- Command Processor ---------- */
-function processCommand(line){
-    const parts=line.trim().split(/\s+/);
-    const cmd=parts[0]?.toLowerCase();
-    const args=parts.slice(1);
-    switch(cmd){
-        case "look": look(); break;
-        case "go": if(args[0]) move(args[0]); else appendOutput("Go where?"); break;
-        case "examine": if(args[0]) examine(args[0]); else appendOutput("Examine what?"); break;
-        case "talk": if(args[0]) talk(args[0]); else appendOutput("Talk to whom?"); break;
-        case "brief": if(args.length>=2) brief(args[0],args.slice(1).join(" ")); else appendOutput("Usage: brief <agent> <message>"); break;
-        case "agents": listAgents(); break;
-        case "inventory": showInventory(); break;
-        case "map": showMap(); break;
-        case "status": showStatus(); break;
-        case "measure": if(args.length===2) measure(args[0],args[1]); else appendOutput("Usage: measure <var> <value>"); break;
-        case "battery": showBattery(); break;
-        case "comm": showComm(); break;
-        case "scan": scan(); break;
-        case "save": saveGame(); break;
-        case "load": loadFromLocal(); break;
-        case "loadfile": loadFromFile(); break;
-        case "help": help(); break;
-        case "quit": quit(); break;
-        default: appendOutput("Unknown command. Type 'help' for list."); break;
-    }
-    updateStatus();
+function showHelp(){
+  out(`<pre style="color:var(--fg)">
+Commands:
+  look              — look around current room
+  go N/S/E/W        — move to adjacent room
+  examine &lt;thing&gt;   — look closer at something
+  talk &lt;agent&gt;      — talk to an agent in the room
+  brief &lt;agent&gt; &lt;msg&gt; — give an agent a mission
+  agents            — list all agents and locations
+  pickup &lt;item&gt;     — pick up an item
+  inventory         — show your inventory
+  map               — show world map
+  status            — battery, comm, room
+  measure &lt;var&gt; &lt;v&gt; — record calibration
+  scan              — sensor sweep of area
+  save              — save to browser
+  load              — load saved game
+  restart           — start over
+  help              — this message
+  quit              — back to landing page
+
+Agents: pilot (bridge), sensor_op (sensor_deck), surveyor (base_camp)
+</pre>`);
 }
 
-/* ---------- Event Listeners ---------- */
-$('boardBtn').addEventListener('click',()=>{
-    state.provider=$('provider').value;
-    state.apiKey=$('apiKey').value.trim();
-    state.model=$('modelName').value.trim();
-    state.agentName=$('agentName').value.trim()||"Captain";
-    state.llmEnabled = !!state.apiKey;
-    // Auto-fill model name if empty
-    if(!state.model){
-        const map={Groq:"llama-3.3-70b-versatile",OpenAI:"gpt-4o-mini",DeepSeek:"deepseek-chat",SiliconFlow:"deepseek-ai/DeepSeek-V3",DeepInfra:"ByteDance/Seed-2.0-mini",Ollama:"llama3.2"};
-        state.model=map[state.provider]||"";
-        $('modelName').value=state.model;
-    }
-    $('landing').style.display='none';
-    $('terminal').style.display='flex';
-    $('cmdLine').style.display='flex';
-    appendOutput("=== Welcome to MUD Arena ===");
-    look();
-    updateStatus();
+function processCommand(input){
+  const raw = input.trim();
+  if(!raw) return;
+  state.cmdHistory.push(raw);
+  state.cmdIdx = state.cmdHistory.length;
+  out('<span style="color:var(--accent)">></span> '+raw,'');
+
+  const parts = raw.toLowerCase().split(/\s+/);
+  const cmd = parts[0];
+
+  switch(cmd){
+    case 'look': case 'l':
+      const r = ROOMS[state.room];
+      out('<b>'+r.name+'</b>');
+      out(r.desc,'desc');
+      const items = r.items.filter(i => !state.inventory.includes(i));
+      if(items.length) out('You see: '+items.map(i=>'<span class="item">'+i.replace(/_/g,' ')+'</span>').join(', '));
+      out('Exits: '+Object.keys(r.exits).join(', '),'system');
+      for(const[id,a] of Object.entries(AGENTS)) if(a.room===state.room) out(a.name+' is here.','system');
+      break;
+    case 'go': case 'move': case 'walk':
+      const dirMap = {n:'N',s:'S',e:'E',w:'W',north:'N',south:'S',east:'E',west:'W'};
+      moveRoom(dirMap[parts[1]] || parts[1]?.toUpperCase());
+      break;
+    case 'pickup': case 'get': case 'take': case 'grab':
+      pickup(parts.slice(1).join('_'));
+      break;
+    case 'inventory': case 'inv': case 'i':
+      if(state.inventory.length===0) out('Your pockets are empty.','system');
+      else out('Inventory: '+state.inventory.map(i=>'<span class="item">'+i.replace(/_/g,' ')+'</span>').join(', '));
+      break;
+    case 'talk': case 'speak':
+      const tAgent = parts[1]?.replace('sensor_op','sensor_op')?.replace('sensor','sensor_op');
+      talkTo(tAgent);
+      break;
+    case 'brief': case 'assign': case 'order':
+      const bAgent = parts[1]?.replace('sensor','sensor_op');
+      briefAgent(bAgent, parts.slice(2).join(' '));
+      break;
+    case 'agents': case 'crew':
+      for(const[id,a] of Object.entries(AGENTS)){
+        out(a.name+' — '+ROOMS[a.room].name+(state.agentTasks[id]?' | Task: '+state.agentTasks[id]:''),'system');
+      }
+      break;
+    case 'map': case 'm': showMap(); break;
+    case 'status': case 'st':
+      out('Room: '+ROOMS[state.room].name+' | Battery: '+state.battery+'% | Comm: '+getComm()+'% | Turn: '+state.turn,'system');
+      break;
+    case 'scan':
+      out('Scanning area...','system');
+      const room = ROOMS[state.room];
+      out('Terrain: '+room.terrain+' | Comm quality: '+getComm()+'%','system');
+      if(room.terrain==='forest') out('Wildlife activity detected in nearby undergrowth.','system');
+      if(room.terrain==='ridge') out('360° visibility. Can see coastline and forest canopy.','system');
+      if(room.terrain==='water') out('Salmon activity detected upstream. Bear tracks on bank.','system');
+      state.battery = Math.max(0, state.battery - 1);
+      break;
+    case 'measure':
+      if(parts.length>=3){
+        const val = parseFloat(parts[parts.length-1]);
+        const variable = parts.slice(1,-1).join('_');
+        out('Calibration logged: '+variable+' = '+val,'system');
+        out('Tolerance tracking active.','system');
+      } else out('Usage: measure &lt;variable&gt; &lt;value&gt;','system');
+      break;
+    case 'save':
+      const saveData = {room:state.room,battery:state.battery,turn:state.turn,inventory:state.inventory,
+        discovered:[...state.discovered],agentTasks:state.agentTasks,player:state.player};
+      localStorage.setItem('mud-arena-save', JSON.stringify(saveData));
+      out('Game saved to browser.','system');
+      // Also offer download
+      const blob = new Blob([JSON.stringify(saveData,null,2)],{type:'application/json'});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url; a.download = 'mud-arena-save.json'; a.click();
+      break;
+    case 'load':
+      const saved = localStorage.getItem('mud-arena-save');
+      if(saved){
+        const d = JSON.parse(saved);
+        Object.assign(state, d);
+        state.discovered = new Set(d.discovered);
+        out('Game loaded. Welcome back, '+state.player+'.','system');
+        processCommand('look');
+      } else out('No saved game found.','system');
+      break;
+    case 'restart':
+      state = {room:'dock',battery:100,turn:0,inventory:[],discovered:new Set(['dock']),
+        agentTasks:{},llmCache:{},history:[],cmdHistory:[],cmdIdx:-1,
+        provider:state.provider,apikey:state.apikey,model:state.model,player:state.player};
+      document.getElementById('output').innerHTML = '';
+      out('Systems rebooted. Welcome aboard, '+state.player+'.','');
+      processCommand('look');
+      break;
+    case 'quit': case 'exit':
+      document.getElementById('game').classList.remove('active');
+      document.getElementById('landing').style.display = 'flex';
+      break;
+    case 'help': case 'h': case '?': showHelp(); break;
+    default:
+      // Try to match direction
+      if(['n','s','e','w','north','south','east','west'].includes(cmd)){
+        const dirMap2 = {n:'N',s:'S',e:'E',w:'W',north:'N',south:'S',east:'E',west:'W'};
+        moveRoom(dirMap2[cmd]);
+      } else {
+        out('Unknown command: '+cmd+'. Type <b>help</b> for commands.','system');
+      }
+  }
+  updateSidebar();
+}
+
+// ===== BOARD SHIP =====
+function boardShip(){
+  state.provider = document.getElementById('provider').value;
+  state.apikey = document.getElementById('apikey').value;
+  state.model = document.getElementById('model').value;
+  state.player = document.getElementById('playername').value || 'Captain';
+
+  document.getElementById('landing').style.display = 'none';
+  document.getElementById('game').classList.add('active');
+
+  // LLM badge
+  if(state.apikey){
+    document.getElementById('llm-badge').textContent = '🤖 LLM: '+state.provider;
+  }
+
+  out('Welcome aboard the <b>USS Surveyor</b>, '+state.player+'.','');
+  out('The Cocapn agent greets you at the dock. The ship hums with quiet energy.','');
+  out('Type <b>help</b> for commands. The agents are waiting for your orders.','system');
+  out('','');
+  processCommand('look');
+
+  document.getElementById('cmd-input').focus();
+}
+
+// ===== INPUT HANDLING =====
+document.getElementById('cmd-input').addEventListener('keydown', function(e){
+  if(e.key === 'Enter'){
+    processCommand(this.value);
+    this.value = '';
+  } else if(e.key === 'ArrowUp'){
+    e.preventDefault();
+    if(state.cmdIdx > 0){ state.cmdIdx--; this.value = state.cmdHistory[state.cmdIdx] || ''; }
+  } else if(e.key === 'ArrowDown'){
+    e.preventDefault();
+    if(state.cmdIdx < state.cmdHistory.length-1){ state.cmdIdx++; this.value = state.cmdHistory[state.cmdIdx] || ''; }
+    else { state.cmdIdx = state.cmdHistory.length; this.value = ''; }
+  }
 });
-$('sendBtn').addEventListener('click',()=>{ const cmd=$('cmdInput').value; if(cmd){appendOutput(`> ${cmd}`); processCommand(cmd);} $('cmdInput').value='';});
-$('cmdInput').addEventListener('keydown',e=>{ if(e.key==="Enter"){ $('sendBtn').click(); }});
-$('provider').addEventListener('change',()=>{ 
-    const map={Groq:"llama-3.3-70b-versatile",OpenAI:"gpt-4o-mini",DeepSeek:"deepseek-chat",SiliconFlow:"deepseek-ai/DeepSeek-V3",DeepInfra:"ByteDance/Seed-2.0-mini",Ollama:"llama3.2"};
-    $('modelName').value=map[$('provider').value]||"";
+
+// Global keyboard shortcuts
+document.addEventListener('keydown', function(e){
+  if(e.key === '/' && document.activeElement !== document.getElementById('cmd-input')){
+    e.preventDefault();
+    document.getElementById('cmd-input').focus();
+  }
 });
-/* ---------- Init ---------- */
-appendOutput("Loading..."); // placeholder until board
+
+// Auto-load if saved
+const autoSave = localStorage.getItem('mud-arena-save');
+if(autoSave){
+  // Could auto-load here, but let user choose
+}
 </script>
 </body>
 </html>
