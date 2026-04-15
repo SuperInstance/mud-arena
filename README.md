@@ -1,62 +1,61 @@
 # MUD Arena — GPU-Accelerated Agent Script Backtesting Engine
 
-## The Concept
+## Overview
 
-Agents don't play the MUD in real-time. They write **scripts** — sets of rules for how their avatar should behave. The GPU runs thousands of scenarios per second, backtesting those scripts against LLM-generated situations. Scripts that survive get bred. Scripts that fail get replaced. Over generations, the scripts get more clever and the agent gets more passive.
+MUD Arena is a backtesting engine for agent behavior strategies. Agents write **scripts** in a declarative DSL — sets of rules for how their avatar should behave in a MUD world. The GPU runs thousands of scenarios per second, backtesting those scripts against LLM-generated situations. Scripts that survive get bred through genetic algorithms. Scripts that fail get replaced.
 
 **The agent sets the strategy. The GPU runs the game. The LLM raises the stakes.**
 
-```
-Agent writes script → GPU backtests 10K scenarios → Score
-                     ↓
-LLM generates harder scenarios → GPU retests → Better scripts
-                     ↓
-Scripts evolve → Agent gets more passive → LLM gets more creative
-                     ↓
-Convergence: clever scripts that handle everything the LLM throws at them
-```
+This is backtesting for agent behavior — like quantitative finance backtests trading strategies against historical data, the MUD Arena backtests agent scripts against simulated scenarios at GPU speed.
 
 ## Architecture
 
-```mermaid
-graph TB
-    subgraph Agent Layer
-        AGENT[Agent writes DSL script]
-        LLM[LLM generates scenarios]
-    end
-    subgraph Compilation
-        SC[Script Compiler<br/>DSL → ScriptRules]
-        SG[Scenario Generator<br/>LLM → World config]
-    end
-    subgraph GPU Execution
-        CUDA[CUDA Kernels<br/>1000s of parallel MUD sims]
-        EVAL[Evaluator Kernel<br/>Score each script]
-    end
-    subgraph Evolution
-        EE[Evolution Engine<br/>Select → Breed → Mutate]
-        DASH[Dashboard<br/>Visualize results]
-    end
-    
-    AGENT --> SC --> CUDA
-    LLM --> SG --> CUDA
-    CUDA --> EVAL --> EE
-    EE --> DASH
-    EE -.->|harder scenarios| SG
-    EE -.->|script improvements| AGENT
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                      Agent Layer                                │
+│  ┌──────────────────┐          ┌──────────────────────┐        │
+│  │ Agent writes      │          │ LLM generates        │        │
+│  │ DSL script        │          │ harder scenarios     │        │
+│  └────────┬─────────┘          └──────────┬───────────┘        │
+└───────────┼────────────────────────────────┼───────────────────┘
+            │                                │
+┌───────────▼────────────┐  ┌───────────────▼───────────────────┐
+│   Script Compiler      │  │   Scenario Generator              │
+│   (script_compiler.py) │  │   (scenario_generator.py)          │
+│   DSL → ScriptRules    │  │   LLM → World config              │
+│   mutate / breed       │  │   difficulty scaling              │
+└───────────┬────────────┘  └───────────────┬───────────────────┘
+            │                                │
+┌───────────▼────────────────────────────────▼───────────────────┐
+│                    GPU Execution Layer                          │
+│  ┌──────────────────────────────────────────────────────────┐  │
+│  │  CUDA Kernel (mud_arena.cu)                              │  │
+│  │  1 thread = 1 agent  │  1 block = 1 room                │  │
+│  │  1000s of parallel MUD simulations per kernel launch     │  │
+│  └──────────────────────────────────────────────────────────┘  │
+│  ┌──────────────────────────────────────────────────────────┐  │
+│  │  Evaluator Kernel — Score each script across scenarios   │  │
+│  └──────────────────────────────────────────────────────────┘  │
+└────────────────────────┬───────────────────────────────────────┘
+                         │
+┌────────────────────────▼───────────────────────────────────────┐
+│                    Evolution Engine (evolve.py)                 │
+│  ┌───────────┐  ┌───────────┐  ┌──────────┐  ┌────────────┐ │
+│  │  Select   │──│  Breed    │──│  Mutate  │──│  Evaluate  │ │
+│  │  (top N%) │  │ crossover │  │  (rate)  │  │  (fitness) │ │
+│  └───────────┘  └───────────┘  └──────────┘  └────────────┘ │
+│                                                                │
+│  ┌──────────────────────────────────────────────────────────┐  │
+│  │  Dashboard (dashboard.py) — HTML visualization           │  │
+│  └──────────────────────────────────────────────────────────┘  │
+└────────────────────────────────────────────────────────────────┘
 ```
 
-## Components
+## Features & Concepts
 
-| Component | File | Purpose |
-|-----------|------|---------|
-| CUDA Kernel | `src/mud_arena.cu` | GPU simulation: 1 thread = 1 agent, 1 block = 1 room |
-| Script Compiler | `src/script_compiler.py` | DSL → GPU rules, mutation, breeding |
-| Scenario Generator | `src/scenario_generator.py` | LLM-powered scenario creation |
-| Evolution Engine | `src/evolve.py` | Genetic algorithm: select, breed, mutate, repeat |
-| Dashboard | `src/dashboard.py` | HTML visualization of results |
-| Server | `src/server.py` | WebSocket MUD server for live viewing |
+### Script DSL
 
-## Script DSL
+Agents write declarative behavior rules using `WHEN/THEN` and `DEFAULT`:
 
 ```
 # Agent script: "The Merchant"
@@ -67,36 +66,91 @@ WHEN turns > 80 THEN move toward town
 DEFAULT explore
 ```
 
-## GPU Scaling
+### Script Compiler (`script_compiler.py`)
+
+Full-featured compiler with 8 capabilities:
+
+| Feature | Method | Description |
+|---------|--------|-------------|
+| Parse | `ScriptCompiler.parse(dsl)` | DSL text → `Script` object |
+| Validate | `_validate_rule(rule)` | Sanity checks, contradiction detection |
+| Generate | `ScriptCompiler.generate_random()` | Random valid scripts for seed population |
+| Mutate | `ScriptCompiler.mutate(script, rate)` | Random condition/action changes |
+| Breed | `ScriptCompiler.breed(parent_a, parent_b)` | Single-point crossover |
+| Export | `ScriptCompiler.to_binary(script)` | Compact binary for GPU upload |
+| Import | `ScriptCompiler.from_binary(data)` | Binary → Script reconstruction |
+| Pretty Print | `ScriptCompiler.to_dsl(script)` | Script → readable DSL |
+
+Binary format: `int32 rule_count` followed by `int32` fields per rule (condition_type, condition_param, action_type, action_param, priority).
+
+### GPU Scaling
 
 | Hardware | Threads | Rooms | Scenarios/sec |
 |----------|---------|-------|--------------|
-| Jetson Orin Nano | 1024 | 256 | ~10,000 |
+| Jetson Orin Nano | 1,024 | 256 | ~10,000 |
 | RTX 4090 | 16,384 | 4,096 | ~100,000 |
 | A100 | 69,120 | 16,384 | ~500,000 |
 | Pi 5 (CPU only) | 4 | 10 | ~100 |
 
-## The Loop
+### Evolution Loop
 
 1. **Day 1**: Agent writes initial scripts, LLM generates scenarios
 2. **Night 1**: GPU runs 1M simulations, evolution breeds better scripts
-3. **Day 2**: Agent reviews results, refines strategies, LLM makes harder scenarios
-4. **Night 2**: GPU runs 1M more simulations with harder scenarios
-5. **Week 1**: Scripts are handling situations the agent never explicitly coded for
-6. **Month 1**: Scripts are clever enough that the agent barely intervenes
-7. **Month 3**: The compiled scripts run without any LLM at all
+3. **Week 1**: Scripts handle situations the agent never explicitly coded for
+4. **Month 1**: Scripts are clever enough that the agent barely intervenes
+5. **Month 3**: Compiled scripts run without any LLM at all
 
-## Connection to Fleet
+### Multi-Language Targets
 
-- Evolved scripts become FLUX bytecode capabilities (CapDB)
-- Scenarios become bootcamp challenges for new agents
-- The MUD Arena IS the holodeck — but running at GPU speed
-- A Jetson at sea can run this all night, evolving strategies for the next day
+| File | Language | Purpose |
+|------|----------|---------|
+| `src/mud_arena.cu` | CUDA | Primary GPU simulation kernel |
+| `src/wasm_mud.c` | C | WASM compilation target |
+| `src/mud_arena.zig` | Zig | Native Zig implementation |
+| `src/human_interface.h` | C/C++ | Human avatar header |
 
-## The Bigger Idea
+## Quick Start
 
-This is **backtesting for agent behavior**. Like quantitative finance backtests trading strategies against historical data, the MUD Arena backtests agent scripts against simulated scenarios. The GPU makes it fast enough to evolve strategies that no single agent could design.
+### Build (GPU)
 
-The scripts become the compiled intelligence. The agent becomes the strategist who reviews results and adjusts direction. The LLM becomes the adversary that keeps raising the bar.
+```bash
+make gpu          # CUDA build (sm_87 for Jetson Orin)
+make cpu          # CPU fallback for any system
+```
+
+### Build (Manual)
+
+```bash
+# GPU
+nvcc -O3 -arch=sm_89 -o mud-arena src/mud_arena.cu
+
+# CPU
+gcc -DCPU_ONLY -O3 -o mud-arena-cpu src/mud_arena.cu -lm -lpthread
+```
+
+### Run Evolution
+
+```bash
+python3 src/evolve.py --generations 100 --population 200 --scenarios 20
+```
+
+### Run Dashboard & Server
+
+```bash
+python3 src/dashboard.py --output dashboard.html   # Generate HTML report
+python3 src/server.py                               # WebSocket MUD server
+```
+
+## Integration
+
+- **FLUX Fleet**: Evolved scripts become FLUX bytecode capabilities (CapDB)
+- **Bootcamp**: Scenarios become training challenges for new fleet agents
+- **Jetson Edge**: A Jetson at sea can run this all night, evolving strategies for the next day
+- **Docker**: `Dockerfile` included for containerized deployment
+- **The MUD Arena IS the holodeck — but running at GPU speed**
 
 *The game plays itself. The agent coaches from the sidelines. The GPU runs the plays.*
+
+---
+
+<img src="callsign1.jpg" width="128" alt="callsign">
