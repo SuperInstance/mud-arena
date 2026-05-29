@@ -134,3 +134,5 @@ The arena runs on the Conservation Spectral Framework:
 ## License
 
 MIT
+
+Part of the [SuperInstance OpenConstruct](https://github.com/SuperInstance/OpenConstruct) ecosystem.
