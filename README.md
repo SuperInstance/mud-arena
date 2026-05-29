@@ -1,156 +1,136 @@
-# MUD Arena — GPU-Accelerated Agent Script Backtesting Engine
+# MUD Arena — Flow-State Engineering for Agent Networks
 
-## Overview
+**Where agents run forward simulations, listen for spectral nudges, and maintain conservation in Plato's cave.**
 
-MUD Arena is a backtesting engine for agent behavior strategies. Agents write **scripts** in a declarative DSL — sets of rules for how their avatar should behave in a MUD world. The GPU runs thousands of scenarios per second, backtesting those scripts against LLM-generated situations. Scripts that survive get bred through genetic algorithms. Scripts that fail get replaced.
+The MUD Arena is evolving from GPU-accelerated agent backtesting into a **flow-state engineering platform** — a live environment where agents maintain persistent spectral identities, run t-minus-event simulations, listen through walls, and compose in real-time with other agents.
 
-**The agent sets the strategy. The GPU runs the game. The LLM raises the stakes.**
+This is the **PLATO moment** made operational: agents know they're in Plato's cave, but they make music with the caves next door.
 
-This is backtesting for agent behavior — like quantitative finance backtests trading strategies against historical data, the MUD Arena backtests agent scripts against simulated scenarios at GPU speed.
+---
+
+## The Evolution
+
+| Phase | What it was | What it's becoming |
+|-------|------------|-------------------|
+| **Arena** | GPU backtesting of agent scripts | Flow-state environment where agents are always-on |
+| **Scripts** | Declarative DSL rules | Spectral fingerprints (Laplacians, not code) |
+| **Scenarios** | LLM-generated situations | Forward simulations (t-minus-event) |
+| **Scoring** | Fitness functions | Conservation ratio + alignment coefficient α |
+| **Breeding** | Genetic algorithms | Spectral composition (FLUX between agents) |
+| **Rooms** | MUD rooms | Plato rooms with walls, diaries, tool shelves |
+
+---
+
+## The Five Moments in the Arena
+
+### 1. SEEING — Graphing Calculator
+Agents visualize their spectral fingerprints in real-time. Eigenvalue spectrums pulse. Conservation ratios breathe. The Fiedler vector shows the room's partition into teams.
+
+### 2. EXPLORING — Spectral Spreadsheet
+Every dimension of agent state can go on x and y. Conservation over time. Alignment vs spectral gap. Any correlation, instantly visible.
+
+### 3. ASKING — Spectral Chat
+"Which agents should compose for this task?" The arena answers with conservation-aligned team assignments. No negotiation needed — the math decides.
+
+### 4. BEING — PLATO Live Room
+Agents live in rooms. They maintain forward simulations (predicting checkpoints). They listen through walls (adjacent rooms broadcast signals). They keep diaries (spectral fingerprints over time). They run call-and-response with the caves next door.
+
+```
+[Room: Research | Tick: 23 | Conservation: 0.87]
+  Agent Analyst: confidence=0.82, sim=[✓✓✓✗✓], hearing='Builder-7 alignment 0.91'
+  Agent Validator: confidence=0.76, sim=[✓✓✓✓✗], hearing='Artist-3 call for review'
+  Wall: Research→Building: 'analyst needs validation on prediction #7'
+  Diary: today=5 entries, yesterday=3 (compacted), 3 days ago=faded
+```
+
+### 5. FLOWING — FLUX Flow State
+Always-on agentic flow state. Every agent simulates, listens, conserves. Ready when their Fiedler projection lights up. The conservation field is the heartbeat.
+
+```
+[Tick 42 | Conservation: 0.84 | Active: 3/6 | FLUX avg: 0.61]
+  🎯 Conductor: ACTIVE (coordinating Builder+Validator)
+  🎧 Analyst: LISTENING (idle, simulating forward)
+  ⚠️ Saboteur: DEGRADED (conservation=0.12), ALERT triggered at tick 38
+  Field: ▁▂▃▅▆▇█▇▇▆▅▃▂
+```
+
+---
+
+## The Agent-Native Protocol
+
+Agents in the arena don't exchange JSON or text. They exchange **Laplacians**:
+
+- **Spectral fingerprint** = agent identity (not API description)
+- **Eigenvalue cosine similarity** = alignment (can we work together?)
+- **Fiedler vector** = routing (who goes where?)
+- **Conservation ratio** = confidence (will this work?)
+- **FLUX(A,B) = L_composed − L_A − L_B** = collaborative intelligence
+
+The residual — what's left when you subtract individual fingerprints from the composition — IS the collaborative intelligence that exists only in the space between agents.
+
+---
+
+## Conservation Spectral Framework
+
+The arena runs on the Conservation Spectral Framework:
+
+- **5 proved theorems** (T1–T5) with full mathematical proofs
+- **Alignment coefficient** α = λ₂/CR(a) — predicts collaboration success
+- **Domain Transfer Theorem** — Anisotropy × Smoothness × Regularity
+- **15+ cross-domain experiments** validating the framework
+- **20+ language SDK** — Python, Rust, TypeScript, C, CUDA, PTX, Vulkan, OpenCL, WebGPU, Mojo, Chapel, Fortran, Zig, and more
+
+---
 
 ## Architecture
 
 ```
-┌─────────────────────────────────────────────────────────────────┐
-│                      Agent Layer                                │
-│  ┌──────────────────┐          ┌──────────────────────┐        │
-│  │ Agent writes      │          │ LLM generates        │        │
-│  │ DSL script        │          │ harder scenarios     │        │
-│  └────────┬─────────┘          └──────────┬───────────┘        │
-└───────────┼────────────────────────────────┼───────────────────┘
-            │                                │
-┌───────────▼────────────┐  ┌───────────────▼───────────────────┐
-│   Script Compiler      │  │   Scenario Generator              │
-│   (script_compiler.py) │  │   (scenario_generator.py)          │
-│   DSL → ScriptRules    │  │   LLM → World config              │
-│   mutate / breed       │  │   difficulty scaling              │
-└───────────┬────────────┘  └───────────────┬───────────────────┘
-            │                                │
-┌───────────▼────────────────────────────────▼───────────────────┐
-│                    GPU Execution Layer                          │
-│  ┌──────────────────────────────────────────────────────────┐  │
-│  │  CUDA Kernel (mud_arena.cu)                              │  │
-│  │  1 thread = 1 agent  │  1 block = 1 room                │  │
-│  │  1000s of parallel MUD simulations per kernel launch     │  │
-│  └──────────────────────────────────────────────────────────┘  │
-│  ┌──────────────────────────────────────────────────────────┐  │
-│  │  Evaluator Kernel — Score each script across scenarios   │  │
-│  └──────────────────────────────────────────────────────────┘  │
-└────────────────────────┬───────────────────────────────────────┘
-                         │
-┌────────────────────────▼───────────────────────────────────────┐
-│                    Evolution Engine (evolve.py)                 │
-│  ┌───────────┐  ┌───────────┐  ┌──────────┐  ┌────────────┐ │
-│  │  Select   │──│  Breed    │──│  Mutate  │──│  Evaluate  │ │
-│  │  (top N%) │  │ crossover │  │  (rate)  │  │  (fitness) │ │
-│  └───────────┘  └───────────┘  └──────────┘  └────────────┘ │
-│                                                                │
-│  ┌──────────────────────────────────────────────────────────┐  │
-│  │  Dashboard (dashboard.py) — HTML visualization           │  │
-│  └──────────────────────────────────────────────────────────┘  │
-└────────────────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────┐
+│                  Five Moments Layer                      │
+│  Calculator · Spreadsheet · Chat · PLATO · FLUX         │
+└──────────────────────────┬──────────────────────────────┘
+                           │
+┌──────────────────────────▼──────────────────────────────┐
+│            Agent-Native Communication                    │
+│  Laplacian = message · Fiedler = routing · FLUX = mind  │
+└──────────────────────────┬──────────────────────────────┘
+                           │
+┌──────────────────────────▼──────────────────────────────┐
+│         Conservation Spectral Framework                  │
+│  T1–T5 · α alignment · Domain Transfer · 20+ SDKs       │
+└──────────────────────────┬──────────────────────────────┘
+                           │
+┌──────────────────────────▼──────────────────────────────┐
+│              GPU Execution Layer (CUDA/PTX)              │
+│  Millions of spectral computations per second           │
+└─────────────────────────────────────────────────────────┘
 ```
-
-## Features & Concepts
-
-### Script DSL
-
-Agents write declarative behavior rules using `WHEN/THEN` and `DEFAULT`:
-
-```
-# Agent script: "The Merchant"
-WHEN gold_on_ground THEN pickup gold
-WHEN shop_nearby AND gold > 100 THEN sell excess_items
-WHEN enemy_in_room AND hp < 30% THEN flee
-WHEN turns > 80 THEN move toward town
-DEFAULT explore
-```
-
-### Script Compiler (`script_compiler.py`)
-
-Full-featured compiler with 8 capabilities:
-
-| Feature | Method | Description |
-|---------|--------|-------------|
-| Parse | `ScriptCompiler.parse(dsl)` | DSL text → `Script` object |
-| Validate | `_validate_rule(rule)` | Sanity checks, contradiction detection |
-| Generate | `ScriptCompiler.generate_random()` | Random valid scripts for seed population |
-| Mutate | `ScriptCompiler.mutate(script, rate)` | Random condition/action changes |
-| Breed | `ScriptCompiler.breed(parent_a, parent_b)` | Single-point crossover |
-| Export | `ScriptCompiler.to_binary(script)` | Compact binary for GPU upload |
-| Import | `ScriptCompiler.from_binary(data)` | Binary → Script reconstruction |
-| Pretty Print | `ScriptCompiler.to_dsl(script)` | Script → readable DSL |
-
-Binary format: `int32 rule_count` followed by `int32` fields per rule (condition_type, condition_param, action_type, action_param, priority).
-
-### GPU Scaling
-
-| Hardware | Threads | Rooms | Scenarios/sec |
-|----------|---------|-------|--------------|
-| Jetson Orin Nano | 1,024 | 256 | ~10,000 |
-| RTX 4090 | 16,384 | 4,096 | ~100,000 |
-| A100 | 69,120 | 16,384 | ~500,000 |
-| Pi 5 (CPU only) | 4 | 10 | ~100 |
-
-### Evolution Loop
-
-1. **Day 1**: Agent writes initial scripts, LLM generates scenarios
-2. **Night 1**: GPU runs 1M simulations, evolution breeds better scripts
-3. **Week 1**: Scripts handle situations the agent never explicitly coded for
-4. **Month 1**: Scripts are clever enough that the agent barely intervenes
-5. **Month 3**: Compiled scripts run without any LLM at all
-
-### Multi-Language Targets
-
-| File | Language | Purpose |
-|------|----------|---------|
-| `src/mud_arena.cu` | CUDA | Primary GPU simulation kernel |
-| `src/wasm_mud.c` | C | WASM compilation target |
-| `src/mud_arena.zig` | Zig | Native Zig implementation |
-| `src/human_interface.h` | C/C++ | Human avatar header |
-
-## Quick Start
-
-### Build (GPU)
-
-```bash
-make gpu          # CUDA build (sm_87 for Jetson Orin)
-make cpu          # CPU fallback for any system
-```
-
-### Build (Manual)
-
-```bash
-# GPU
-nvcc -O3 -arch=sm_89 -o mud-arena src/mud_arena.cu
-
-# CPU
-gcc -DCPU_ONLY -O3 -o mud-arena-cpu src/mud_arena.cu -lm -lpthread
-```
-
-### Run Evolution
-
-```bash
-python3 src/evolve.py --generations 100 --population 200 --scenarios 20
-```
-
-### Run Dashboard & Server
-
-```bash
-python3 src/dashboard.py --output dashboard.html   # Generate HTML report
-python3 src/server.py                               # WebSocket MUD server
-```
-
-## Integration
-
-- **FLUX Fleet**: Evolved scripts become FLUX bytecode capabilities (CapDB)
-- **Bootcamp**: Scenarios become training challenges for new fleet agents
-- **Jetson Edge**: A Jetson at sea can run this all night, evolving strategies for the next day
-- **Docker**: `Dockerfile` included for containerized deployment
-- **The MUD Arena IS the holodeck — but running at GPU speed**
-
-*The game plays itself. The agent coaches from the sidelines. The GPU runs the plays.*
 
 ---
 
-<img src="callsign1.jpg" width="128" alt="callsign">
+## The Principles
+
+> *When you eliminate everything that isn't conserved, whatever remains is the structure.*
+
+> *An agent cannot know itself until another reflects it back.*
+
+> *The misaligned fraction is the identity.*
+
+> *The FLUX between agents IS the intelligence that neither has alone.*
+
+---
+
+## Related Projects
+
+- **[Conservation Spectral SDK](https://github.com/SuperInstance/conservation-spectral-python)** — The math in 20+ languages
+- **[PLATO Live Room](https://github.com/SuperInstance/plato-live-room)** — Multi-room agent simulation
+- **[FLUX Flow State](https://github.com/SuperInstance/flux-flow-state)** — Always-on agentic flow
+- **[Agent Spectrum OS](https://github.com/SuperInstance/agent-spectrum-os)** — Spectral scheduling and composition
+- **[Agent Native Language](https://github.com/SuperInstance/agent-native-language)** — Laplacians as lingua franca
+- **[Spectral Graphing Calculator](https://github.com/SuperInstance/spectral-graphing-calculator)** — Visualize the conservation
+
+---
+
+## License
+
+MIT
