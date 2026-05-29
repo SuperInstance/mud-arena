@@ -1,43 +1,17 @@
-# MUD Arena — Flow-State Engineering for Agent Networks
+# MUD Arena — Agent Simulation in a Text-Based World
 
-**Where agents run forward simulations, listen for spectral nudges, and maintain conservation in Plato's cave.**
+Flow-state engineering platform where AI agents navigate rooms, manage inventories, fight battles, and evolve — all through MUD mechanics.
 
-The MUD Arena is a **flow-state engineering platform** and agent simulation arena with MUD (Multi-User Dungeon) mechanics. Agents inhabit rooms, navigate exits, manage inventories, interact with NPCs, and react to events — all driven by pluggable decision functions and a real-time event bus.
+**Part of [SuperInstance OpenConstruct](https://github.com/SuperInstance/OpenConstruct).**
 
-**Part of the [SuperInstance OpenConstruct](https://github.com/SuperInstance/OpenConstruct) ecosystem.**
+## What This Gives You
 
----
-
-## What MUD Arena Does
-
-At its core, mud-arena provides a **MUD-world simulation substrate** for training and testing AI agents:
-
-- **Room Graph** — interconnected rooms with exits, items, and NPCs
-- **Command Parser** — natural-language MUD commands (`go north`, `take key`, `use key with door`, `talk to guard`)
-- **Agent Simulation Loop** — perceive → decide → act cycle with pluggable decision functions
-- **Inventory System** — pick up, drop, use, and trade items with capacity tracking
-- **Event Bus** — pub/sub event dispatch for room events, item actions, and agent reactions
-- **Evolution Engine** — genetic algorithms, tournament selection, crossover breeding
-- **Scenario Generator** — random or LLM-augmented scenario creation
-- **Live Server** — WebSocket, Telnet, and HTTP interfaces for real-time observation
-
-### Connection to OpenConstruct
-
-In the OpenConstruct terrain/a2ui system, **agents live in MUD worlds**. This package simulates those worlds: rooms become terrain cells, NPCs become service endpoints, and inventory becomes resource management. The agent simulation loop mirrors how OpenConstruct agents perceive their environment, decide on actions, and execute them — making mud-arena both a testing ground and a development tool for OpenConstruct agent behaviors.
-
----
-
-## Installation
-
-```bash
-pip install -e .
-
-# With optional dependencies:
-pip install -e ".[dev]"      # pytest, ruff
-pip install -e ".[server]"   # websockets, aiohttp
-pip install -e ".[evolution]" # numpy
-pip install -e ".[llm]"      # openai
-```
+- **Room-graph worlds** — interconnected rooms with exits, items, NPCs, and events
+- **Command parser** — natural-language MUD commands (`go north`, `take key`, `talk to guard`)
+- **Agent simulation loop** — perceive → decide → act cycle with pluggable decision functions
+- **Evolution engine** — genetic algorithms, tournament selection, crossover breeding
+- **Live server** — WebSocket, Telnet, and HTTP interfaces for real-time observation
+- **Event bus** — pub/sub dispatch for room events, item actions, agent reactions
 
 ## Quick Start
 
@@ -58,127 +32,67 @@ agent = Agent(id="hero", current_room="lobby")
 agent.step(graph, bus, "look")        # → room description
 agent.step(graph, bus, "take key")    # → pick up key
 agent.step(graph, bus, "go north")    # → move to hall
-agent.step(graph, bus, "inventory")   # → carrying: key
+```
+
+## Installation
+
+```bash
+pip install -e .
+
+# Optional dependencies:
+pip install -e ".[dev]"       # pytest, ruff
+pip install -e ".[server]"    # websockets, aiohttp
+pip install -e ".[evolution]" # numpy
+pip install -e ".[llm]"       # openai
 ```
 
 ## API Reference
 
-### `parse_command(text: str) → Command`
+### Core Types
 
-Parse a MUD command string into a structured `Command(verb, target, indirect, raw)`.
+| Type | Description |
+|------|-------------|
+| `Room` | A location with exits, items, NPCs, and description |
+| `RoomGraph` | Directed graph of rooms with bidirectional connections |
+| `Agent` | An AI agent with position, inventory, and decision function |
+| `EventBus` | Pub/sub event dispatch for game events |
+| `Item` | Collectible object with weight and properties |
+| `NPC` | Non-player character with dialog and behavior |
 
-| Input | Verb | Target | Indirect |
-|---|---|---|---|
-| `go north` | `GO` | `north` | |
-| `look` | `LOOK` | | |
-| `examine crystal_ball` | `EXAMINE` | `crystal_ball` | |
-| `take key` | `TAKE` | `key` | |
-| `use key with door` | `USE` | `key` | `door` |
-| `talk to guard` | `TALK` | `guard` | |
-| `inventory` | `INVENTORY` | | |
-| `north` | `GO` | `north` | |
+### Agent Loop
 
-### `Room(id, name, description, exits, items, npcs, metadata)`
+```python
+# Custom decision function
+def my_decider(perception: dict) -> str:
+    if perception.get("enemy_nearby"):
+        return "attack"
+    return "explore"
 
-A single room. `exits` maps direction names to destination room IDs.
+agent = Agent(id="hero", current_room="lobby", decide_fn=my_decider)
+```
 
-### `RoomGraph`
+### Evolution
 
-- `add_room(room)` — register a room
-- `connect(room_a, room_b, direction, reverse="")` — link rooms
-- `navigate(from_room, direction) → Optional[str]` — resolve movement
-- `get(room_id) → Optional[Room]` — look up a room
+```python
+from mud_arena.evolution import evolve, TournamentSelection
 
-### `Item(name, description, usable, uses, tags)`
+population = [Agent(id=f"bot-{i}") for i in range(100)]
+winner = evolve(population, graph, bus, generations=50, selector=TournamentSelection())
+```
 
-An item with optional use tracking and tag-based categorisation.
+## How It Fits
 
-### `Inventory(capacity=0)`
+MUD Arena is the simulation substrate for [OpenConstruct](https://github.com/SuperInstance/OpenConstruct). In the terrain/A2UI system, agents live in MUD worlds — rooms become terrain cells, NPCs become service endpoints, inventory becomes resource management. The perceive-decide-act loop mirrors how OpenConstruct agents interact with their environment.
 
-- `add(item)` / `remove(name)` / `has(name)` / `use(name)`
-- `find_by_tag(tag)` / `list_items()`
-- Capacity limit (0 = unlimited)
+Works with [mud2scummvm](https://github.com/SuperInstance/mud2scummvm) for visual interfaces, [plato-shell](https://github.com/SuperInstance/plato-shell) for unified MUD access, and [plato-puppeteer](https://github.com/SuperInstance/plato-puppeteer) for desktop-to-MUD translation.
 
-### `Agent(id, name, current_room, inventory)`
-
-- `perceive(graph) → dict` — build perception of current room
-- `decide(perception) → Command` — run decision function
-- `act(command, graph, bus) → str` — execute a command
-- `step(graph, bus, command_text="") → str` — full perceive→decide→act cycle
-
-### `EventBus`
-
-- `subscribe(event_type, handler)` / `unsubscribe(event_type, handler)`
-- `emit(event)` — broadcast to subscribers
-- `history(event_type=None, room="") → List[Event]` — query event log
-
----
-
-## Running Tests
+## Testing
 
 ```bash
 pip install -e ".[dev]"
-pytest
+pytest tests/ -v
 ```
-
----
-
-## The Five Moments in the Arena
-
-### 1. SEEING — Graphing Calculator
-Agents visualize their spectral fingerprints in real-time. Eigenvalue spectrums pulse. Conservation ratios breathe.
-
-### 2. EXPLORING — Spectral Spreadsheet
-Every dimension of agent state on x and y. Conservation over time. Alignment vs spectral gap.
-
-### 3. ASKING — Spectral Chat
-"Which agents should compose for this task?" Conservation-aligned team assignments.
-
-### 4. BEING — PLATO Live Room
-Agents live in rooms, maintain forward simulations, listen through walls, keep diaries.
-
-### 5. FLOWING — FLUX Flow State
-Always-on agentic flow state. Every agent simulates, listens, conserves.
-
----
-
-## Architecture
-
-```
-┌─────────────────────────────────────────────────────────┐
-│                  Five Moments Layer                      │
-│  Calculator · Spreadsheet · Chat · PLATO · FLUX         │
-└──────────────────────────┬──────────────────────────────┘
-                           │
-┌──────────────────────────▼──────────────────────────────┐
-│            Agent-Native Communication                    │
-│  Laplacian = message · Fiedler = routing · FLUX = mind  │
-└──────────────────────────┬──────────────────────────────┘
-                           │
-┌──────────────────────────▼──────────────────────────────┐
-│         Conservation Spectral Framework                  │
-│  T1–T5 · α alignment · Domain Transfer · 20+ SDKs       │
-└──────────────────────────┬──────────────────────────────┘
-                           │
-┌──────────────────────────▼──────────────────────────────┐
-│              GPU Execution Layer (CUDA/PTX)              │
-│  Millions of spectral computations per second           │
-└─────────────────────────────────────────────────────────┘
-```
-
----
-
-## Related Projects
-
-- **[Conservation Spectral SDK](https://github.com/SuperInstance/conservation-spectral-python)** — The math in 20+ languages
-- **[PLATO Live Room](https://github.com/SuperInstance/plato-live-room)** — Multi-room agent simulation
-- **[FLUX Flow State](https://github.com/SuperInstance/flux-flow-state)** — Always-on agentic flow
-- **[Agent Spectrum OS](https://github.com/SuperInstance/agent-spectrum-os)** — Spectral scheduling and composition
-- **[Agent Native Language](https://github.com/SuperInstance/agent-native-language)** — Laplacians as lingua franca
-- **[Spectral Graphing Calculator](https://github.com/SuperInstance/spectral-graphing-calculator)** — Visualize the conservation
-
----
 
 ## License
 
-MIT — Part of the [SuperInstance OpenConstruct](https://github.com/SuperInstance/OpenConstruct) ecosystem.
+MIT
