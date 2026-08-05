@@ -1,4 +1,3 @@
-```python
 """
 tolerance_tracker.py
 
@@ -260,4 +259,3 @@ class ToleranceTracker:
 
 # Exported symbols when ``from tolerance_tracker import *`` is used
 __all__ = ["Measurement", "ToleranceTracker"]
-```
