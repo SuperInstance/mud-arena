@@ -1,4 +1,3 @@
-```python
 """
 human_mud_interface.py
 
@@ -11,7 +10,7 @@ supports three distinct output modes:
 3. AGENT_VIEW – the raw perspective of a specific in‑game agent (useful for
    debugging scripted agents).
 
-The client automatically falls back to a simple stdin/stdout “offline” mode
+The client automatically falls back to a simple stdin/stdout "offline" mode
 when a WebSocket connection cannot be established.
 
 Typical usage:
@@ -286,4 +285,3 @@ if __name__ == "__main__":
 
     # Run the demo REPL.
     asyncio.run(_demo())
-```

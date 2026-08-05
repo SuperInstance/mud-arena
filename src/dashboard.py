@@ -1,29 +1,3 @@
-Below is a **stand‑alone Python module** that reads a JSON file containing the whole evolution history of a MUD‑Arena back‑test and writes a single, self‑contained HTML file.  
-The HTML page uses only **pure HTML + CSS + JavaScript** (Chart.js is loaded from a CDN) – no web‑server or extra Python packages are required.
-
----
-
-## 1.  Expected JSON structure  
-
-The script does not enforce a rigid schema, but it expects the following top‑level keys (all of them are optional – missing data will simply be omitted from the dashboard).
-
-| Key | Meaning | Example fragment |
-|-----|---------|------------------|
-| `fitness` | List of generations, each with `index`, `best`, `avg`, `worst` | `[{ "index":0, "best":95, "avg":45, "worst":5 }, …]` |
-| `top_scripts` | List of scripts sorted by score (best first). Each entry has `name`, `dsl`, `score` | `[{ "name":"S1", "dsl":"attack;move north", "score":92.3 }, …]` |
-| `scenario_survival` | List of objects `{ "difficulty": <float>, "survival_rate": <float> }` | `[{ "difficulty":0.2, "survival_rate":0.85 }, …]` |
-| `strategy_distribution` | Mapping `strategy → count` (e.g. `"attack": 120`) | `{ "attack":120, "flee":45, "explore":35 }` |
-| `breakthroughs` | List of objects `{ "generation": <int>, "description": <str> }` | `[{ "generation":12, "description":"first script > 90 % win‑rate" }, …]` |
-| `complexity_trend` | List of objects `{ "generation": <int>, "avg_complexity": <float> }` (complexity can be lines of DSL, AST nodes, …) | `[{ "generation":0, "avg_complexity":23.5 }, …]` |
-| `llm_scenarios` | List of strings – the raw scenario prompts the LLM generated | `["You are in a dark cave …", "A dragon blocks the exit …"]` |
-
-Feel free to add extra fields – the dashboard will simply ignore anything it does not recognise.
-
----
-
-## 2.  The Python module  
-
-```python
 #!/usr/bin/env python3
 """
 dashboard_generator.py
@@ -455,20 +429,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-```
-
----
-
-### How to use it
-
-1. **Save the script** (e.g. `dashboard_generator.py`).  
-2. **Prepare the JSON** file (`history.json`) following the structure described in section 1.  
-3. Run the generator from the command line:
-
-```bash
-python dashboard_generator.py history.json -o my_dashboard.html
-```
-
-4. Open `my_dashboard.html` in any modern browser – all charts are rendered client‑side, no web server is required.
-
-Feel free to adapt the CSS, add more sections, or change the chart types – the module is deliberately kept simple and extensible. Enjoy visualising your MUD‑Arena evolution!

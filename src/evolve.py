@@ -1,20 +1,10 @@
-Below is a **self‑contained Python module** that implements the “set‑it‑and‑watch‑the‑game‑go” evolution engine for the MUD Arena.  
-It follows every step you listed, supports optional GPU acceleration (via PyTorch), uses tournament selection, performs crossover‑/mutation‑based breeding, replaces the worst performers, and contains hooks for LLM‑based review and adaptive scenario generation.
-
-Save the file as **`evolve.py`** and run it from the command line, e.g.:
-
-```bash
-python evolve.py --generations 100 --population 200 --scenarios 20
-```
-
-```python
 #!/usr/bin/env python3
 """
 evolve.py – Evolution Engine for the MUD Arena
 
 Features
 --------
-* Random initial population of “scripts” (represented as rule lists)
+* Random initial population of "scripts" (represented as rule lists)
 * Evaluation of every script on a batch of scenarios (GPU‑accelerated when possible)
 * Tournament selection of elite scripts
 * Crossover‑based breeding + per‑gene mutation
@@ -59,11 +49,11 @@ except Exception:          # pragma: no cover
     _GPU_AVAILABLE = False
 
 # ----------------------------------------------------------------------
-# Helper – a very simple representation of a “script”
+# Helper – a very simple representation of a "script"
 # ----------------------------------------------------------------------
 class Script:
     """
-    A script is a list of integer “rules”.  In a real MUD‑Arena
+    A script is a list of integer "rules".  In a real MUD‑Arena
     implementation each rule would be a more complex object (e.g.
     a small program, a decision tree, etc.).  For the purpose of this
     generic engine we keep it simple – the engine only needs to be able
@@ -82,7 +72,7 @@ class Script:
         Must return a numeric fitness (higher = better).
 
         The stub below simply scores the script by counting how many
-        rules match the scenario’s “target” value.  Replace with your
+        rules match the scenario's "target" value.  Replace with your
         actual MUD‑Arena simulation.
         """
         # Example placeholder: scenario is an int, rule matches if equal
@@ -583,16 +573,3 @@ def main() -> None:
 if __name__ == "__main__":
     # Allow the script to be imported without executing the CLI
     main()
-```
-
-### How to Use / Extend
-
-| Step | What to replace / extend |
-|------|--------------------------|
-| **Script evaluation** | Implement the real MUD‑Arena simulation inside `Script.evaluate`. Return a numeric survival/score. |
-| **Scenario generation** | Replace `generate_scenarios` with a function that builds proper arena maps, enemy configurations, etc. |
-| **LLM review** | Fill `llm_review` with a call to your favourite LLM API (OpenAI, Anthropic, etc.) and apply the returned rule suggestions to the elite scripts. |
-| **LLM scenario generation** | Fill `llm_generate_harder_scenarios` with a prompt that asks the LLM to craft tougher challenges based on the elite scripts. |
-| **Rule representation** | If your scripts are more complex than a list of integers, adjust the `Script` class, the crossover (`breed`) and mutation (`mutate`) logic accordingly. |
-
-The module is ready to run out‑of‑the‑box with the placeholder logic, and it provides clear extension points for the actual MUD‑Arena specifics and LLM integration. Happy evolving!

@@ -1,13 +1,3 @@
-Below is a **self‑contained Python module** that implements the requested MUD‑scenario generator.  
-It works in two modes:
-
-* **Pure‑random mode** – no LLM needed, scenarios are built from simple templates.  
-* **LLM‑augmented mode** – given an OpenAI‑compatible API key it can turn a natural‑language prompt into a richly‑described scenario.
-
-The module defines the data model (`Room`, `Item`, `Enemy`, `Hazard`, `AgentConfig`, `Scenario`) and the `ScenarioGenerator` class with all the methods you asked for (`generate_random`, `generate_from_prompt`, `generate_challenge`, `generate_tournament`, `to_json`, `from_json`).  
-The code is heavily commented and includes a small example at the bottom.
-
-```python
 """
 mud_scenario_generator.py
 
@@ -223,7 +213,7 @@ class ScenarioGenerator:
             Item("Magic Scroll", "Contains a random spell.", value=15),
         ]
         for room in rooms:
-            if random.random() < 0.3:                     # 30 % of rooms get an item
+            if random.random() < 0.3:                     # 30 % of rooms get an item
                 room.items.append(random.choice(item_pool))
 
         # ---- enemies --------------------------------------------------
@@ -233,7 +223,7 @@ class ScenarioGenerator:
             Enemy("Dragon", hp=200, attack=30, description="A massive fire‑breathing beast."),
         ]
         for room in rooms:
-            if random.random() < 0.2:                     # 20 % of rooms get an enemy
+            if random.random() < 0.2:                     # 20 % of rooms get an enemy
                 room.enemies.append(random.choice(enemy_pool))
 
         # ---- hazards --------------------------------------------------
@@ -242,7 +232,7 @@ class ScenarioGenerator:
             Hazard("Spikes", damage_per_turn=10, description="Sharp iron spikes protrude from the floor."),
         ]
         for room in rooms:
-            if random.random() < 0.15:                    # 15 % of rooms get a hazard
+            if random.random() < 0.15:                    # 15 % of rooms get a hazard
                 room.hazards.append(random.choice(hazard_pool))
 
         # ---- agents ---------------------------------------------------
@@ -566,17 +556,3 @@ if __name__ == "__main__":
     for i, sc in enumerate(tournament, 1):
         print(f"\n--- Scenario {i} (difficulty {sc.difficulty}) ---")
         print(ScenarioGenerator.to_json(sc, indent=2))
-```
-
-### How the module works
-
-| Feature | Implementation details |
-|---------|------------------------|
-| **Random generation** | Uses simple terrain / item / enemy / hazard pools, builds a connected graph of rooms, and creates a basic victory condition. |
-| **LLM generation** | Sends a system prompt that describes the exact JSON schema, then a user prompt containing the free‑form description. The response is parsed back into the dataclasses. The wrapper works with any OpenAI‑compatible endpoint (`openai` library). |
-| **Adaptive challenge** | Computes a difficulty from recent success‑rate, then augments a random scenario with extra enemies/hazards and tightens the victory condition. |
-| **Tournament** | Generates a list of scenarios whose difficulties are evenly spread across the requested range. |
-| **(De)serialisation** | `to_json` and `from_json` handle nested dataclasses automatically, so you can store scenarios on disk or send them over the network. |
-| **No‑LLM fallback** | If `api_key` is omitted, only the random‑generation path is usable – the class never raises an error unless you explicitly call `generate_from_prompt`. |
-
-You can drop the file (`mud_scenario_generator.py`) into any project, import `ScenarioGenerator`, and start generating worlds for your agent‑testing pipeline. Happy testing!

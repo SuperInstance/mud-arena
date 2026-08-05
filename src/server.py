@@ -1,50 +1,17 @@
-Below is a **complete, self‑contained Python module** that implements the MUD‑watch server you described.  
-It uses only the standard library (`asyncio`, `json`, `subprocess`, …) together with two very lightweight third‑party packages:
-
-* **`websockets`** – for the WebSocket endpoint (port 7779)  
-* **`aiohttp`** – for the REST/HTTP API (port 7780)
-
-Both packages are pure‑Python and work on any recent Python 3.9+ interpreter.  
-If you do not already have them, install with:
-
-```bash
-pip install websockets aiohttp
-```
-
----
-
-## How the code is organised
-
-| Component | What it does | Key functions / classes |
-|-----------|--------------|--------------------------|
-| **Simulation driver** | Reads the live output of the GPU‑based simulator (or falls back to a tiny CPU‑only dummy simulator) and pushes updates into a central `World` object. | `SimulationRunner`, `CPUFallbackSimulator` |
-| **World model** | Holds the current state of rooms, agents, scores, generation stats and scenarios. Provides async notification to any number of “watchers”. | `World` |
-| **WebSocket server** | Accepts connections on **7779**. After a simple login the client can issue the read‑only commands (`look`, `map`, …) and can `watch <agent_id>` to receive a live stream of that agent’s actions. | `websocket_handler` |
-| **Telnet server** | Mirrors the same command set on **7778** using plain TCP sockets, so existing Holodeck clients keep working. | `telnet_handler` |
-| **HTTP API** | Exposes the read‑only data via the REST endpoints you listed on **7780**. | `status_handler`, `agents_handler`, … |
-| **Main entry point** | Starts the three servers and the simulation driver concurrently. | `main()` |
-
-The design is deliberately **event‑driven**: every time the simulation produces a new “tick” the `World` object updates its internal structures and notifies all registered watchers (WebSocket or Telnet clients that asked to `watch` a particular agent).  This gives you true real‑time visibility without any polling loops on the client side.
-
----
-
-## The full module
-
-```python
 #!/usr/bin/env python3
 """
-MUD‑watch server – lets humans observe AI agents playing in real time.
+MUD-watch server - lets humans observe AI agents playing in real time.
 
 Features
 --------
 * WebSocket endpoint   : ws://<host>:7779
 * Telnet endpoint      : <host>:7778
 * HTTP/REST API        : http://<host>:7780
-* Reads live output from a GPU‑based simulator; if no GPU is present a tiny
-  CPU‑only fallback simulator runs instead.
-* All commands are **read‑only** – humans can watch but cannot control agents.
+* Reads live output from a GPU-based simulator; if no GPU is present a tiny
+  CPU-only fallback simulator runs instead.
+* All commands are **read-only** - humans can watch but cannot control agents.
 
-Author  : ChatGPT (2024‑06‑14)
+Author  : ChatGPT (2024-06-14)
 License : MIT
 """
 
@@ -68,13 +35,13 @@ WEBSOCKET_PORT = 7779
 TELNET_PORT = 7778
 HTTP_PORT = 7780
 
-# Path to the external GPU‑based simulator binary (if any).  The binary is
-# expected to write newline‑delimited JSON objects to stdout, each object
+# Path to the external GPU-based simulator binary (if any).  The binary is
+# expected to write newline-delimited JSON objects to stdout, each object
 # representing a simulation tick.
 GPU_SIM_BINARY = Path("./gpu_simulator")   # <-- change to your real binary
 
 # ----------------------------------------------------------------------
-# Data model – the shared “world” state
+# Data model - the shared "world" state
 # ----------------------------------------------------------------------
 @dataclass
 class AgentState:
@@ -84,11 +51,11 @@ class AgentState:
     location: str
     last_action: str = ""
     score: float = 0.0
-    # you can extend this with more fields (health, inventory, …)
+    # you can extend this with more fields (health, inventory, ...)
 
 @dataclass
 class World:
-    """Thread‑safe container for the whole simulation state."""
+    """Thread-safe container for the whole simulation state."""
     rooms: Dict[str, Dict[str, Any]] = field(default_factory=dict)          # room_id → room data
     agents: Dict[str, AgentState] = field(default_factory=dict)           # agent_id → state
     scores: Dict[str, float] = field(default_factory=dict)                # script_id → score
@@ -100,7 +67,7 @@ class World:
     _lock: asyncio.Lock = field(default_factory=asyncio.Lock)
 
     # ------------------------------------------------------------------
-    # Public API – called by the simulation driver
+    # Public API - called by the simulation driver
     # ------------------------------------------------------------------
     async def update_from_tick(self, tick: Dict[str, Any]) -> None:
         """
@@ -138,7 +105,7 @@ class World:
                         "score": agent.score,
                     })
 
-            # 3️⃣ Update scores (script‑level)
+            # 3️⃣ Update scores (script-level)
             if "scores" in tick:
                 self.scores.update(tick["scores"])
 
@@ -154,12 +121,12 @@ class World:
     # Watcher management
     # ------------------------------------------------------------------
     async def register_watcher(self, agent_id: str, queue: asyncio.Queue) -> None:
-        """Add a queue that will receive JSON‑serialisable messages for *agent_id*."""
+        """Add a queue that will receive JSON-serialisable messages for *agent_id*."""
         async with self._lock:
             self._watchers[agent_id].add(queue)
 
     async def unregister_watcher(self, agent_id: str, queue: asyncio.Queue) -> None:
-        """Remove a previously‑registered queue."""
+        """Remove a previously-registered queue."""
         async with self._lock:
             self._watchers[agent_id].discard(queue)
             if not self._watchers[agent_id]:
@@ -212,13 +179,13 @@ class World:
 
 
 # ----------------------------------------------------------------------
-# Simulation runner – reads from GPU binary or falls back to CPU dummy
+# Simulation runner - reads from GPU binary or falls back to CPU dummy
 # ----------------------------------------------------------------------
 class SimulationRunner:
     """
     Starts the external GPU simulator (if present) and forwards each JSON line
     to the shared ``World`` instance.  If the binary cannot be started, a very
-    small CPU‑only dummy simulator runs instead.
+    small CPU-only dummy simulator runs instead.
     """
     def __init__(self, world: World):
         self.world = world
@@ -232,7 +199,7 @@ class SimulationRunner:
             await self._start_cpu_fallback()
 
     async def _start_gpu(self) -> None:
-        """Launch the external binary and read its stdout line‑by‑line."""
+        """Launch the external binary and read its stdout line-by-line."""
         self._process = await asyncio.create_subprocess_exec(
             str(GPU_SIM_BINARY),
             stdout=asyncio.subprocess.PIPE,
@@ -251,7 +218,7 @@ class SimulationRunner:
             sys.stderr.flush()
 
     async def _read_stdout(self, stream: asyncio.StreamReader) -> None:
-        """Consume newline‑delimited JSON from the simulator."""
+        """Consume newline-delimited JSON from the simulator."""
         async for raw in stream:
             line = raw.decode().strip()
             if not line:
@@ -264,7 +231,7 @@ class SimulationRunner:
 
     async def _start_cpu_fallback(self) -> None:
         """A tiny deterministic simulator that produces synthetic ticks."""
-        print("[SIM] GPU binary not found – starting CPU fallback simulator.")
+        print("[SIM] GPU binary not found - starting CPU fallback simulator.")
         self._task = asyncio.create_task(CPUFallbackSimulator(self.world).run())
 
     async def stop(self) -> None:
@@ -281,7 +248,7 @@ class SimulationRunner:
 
 class CPUFallbackSimulator:
     """
-    Very small deterministic “simulation” that creates a few rooms and agents
+    Very small deterministic "simulation" that creates a few rooms and agents
     and moves the agents around every second.  It is *only* meant as a placeholder
     when no real GPU simulator is available.
     """
@@ -332,10 +299,10 @@ class CPUFallbackSimulator:
 
 
 # ----------------------------------------------------------------------
-# Helper – simple command parser (shared by WS & Telnet)
+# Helper - simple command parser (shared by WS & Telnet)
 # ----------------------------------------------------------------------
 def parse_command(line: str) -> Tuple[str, List[str]]:
-    """Return (cmd, args) where cmd is lower‑cased."""
+    """Return (cmd, args) where cmd is lower-cased."""
     parts = line.strip().split()
     if not parts:
         return "", []
@@ -348,12 +315,12 @@ def parse_command(line: str) -> Tuple[str, List[str]]:
 async def websocket_handler(websocket: websockets.WebSocketServerProtocol, path: str, world: World):
     """
     One client per connection.  After login the client can issue any of the
-    read‑only commands.  If the client issues ``watch <agent_id>`` we start
+    read-only commands.  If the client issues ``watch <agent_id>`` we start
     forwarding live updates for that agent until the client sends another
     ``watch`` command or disconnects.
     """
-    # Simple greeting – you can replace with a proper auth handshake if you wish
-    await websocket.send(json.dumps({"msg": "Welcome to the MUD‑watch server"}))
+    # Simple greeting - you can replace with a proper auth handshake if you wish
+    await websocket.send(json.dumps({"msg": "Welcome to the MUD-watch server"}))
 
     # Each client can have at most one active watch at a time.
     watch_queue: asyncio.Queue | None = None
@@ -376,7 +343,7 @@ async def websocket_handler(websocket: websockets.WebSocketServerProtocol, path:
             cmd, args = parse_command(line)
 
             # ------------------------------------------------------------------
-            # 1️⃣  Simple one‑shot commands (no persistent state)
+            # 1️⃣  Simple one-shot commands (no persistent state)
             # ------------------------------------------------------------------
             if cmd == "look":
                 # For demo purposes we just echo the location of the first agent.
@@ -410,7 +377,7 @@ async def websocket_handler(websocket: websockets.WebSocketServerProtocol, path:
                 }))
 
             elif cmd == "leaderboard":
-                # Very simple leaderboard – top‑N by score
+                # Very simple leaderboard - top-N by score
                 agents = await world.agent_list()
                 top = sorted(agents, key=lambda a: a["score"], reverse=True)[:10]
                 await websocket.send(json.dumps({
@@ -431,7 +398,7 @@ async def websocket_handler(websocket: websockets.WebSocketServerProtocol, path:
                 }))
 
             # ------------------------------------------------------------------
-            # 2️⃣  Watch command – set up a live feed for a specific agent
+            # 2️⃣  Watch command - set up a live feed for a specific agent
             # ------------------------------------------------------------------
             elif cmd == "watch":
                 if not args:
@@ -502,7 +469,7 @@ async def start_websocket_server(world: World):
 
 
 # ----------------------------------------------------------------------
-# Telnet server (port 7778) – plain TCP, line‑oriented
+# Telnet server (port 7778) - plain TCP, line-oriented
 # ----------------------------------------------------------------------
 async def telnet_handler(reader: asyncio.StreamReader, writer: asyncio.StreamWriter, world: World):
     """
@@ -514,7 +481,7 @@ async def telnet_handler(reader: asyncio.StreamReader, writer: asyncio.StreamWri
     print(f"[TELNET] Connection from {peer}")
 
     # Greet the client
-    writer.write(b"Welcome to the MUD‑watch telnet interface\r\n")
+    writer.write(b"Welcome to the MUD-watch telnet interface\r\n")
     await writer.drain()
 
     watch_queue: asyncio.Queue | None = None
@@ -542,7 +509,7 @@ async def telnet_handler(reader: asyncio.StreamReader, writer: asyncio.StreamWri
             cmd, args = parse_command(line)
 
             # ------------------------------------------------------------------
-            # One‑shot commands (textual output)
+            # One-shot commands (textual output)
             # ------------------------------------------------------------------
             if cmd == "look":
                 async with world._lock:
@@ -586,7 +553,7 @@ async def telnet_handler(reader: asyncio.StreamReader, writer: asyncio.StreamWri
                 await writer.drain()
 
             # ------------------------------------------------------------------
-            # Watch command – live JSON feed
+            # Watch command - live JSON feed
             # ------------------------------------------------------------------
             elif cmd == "watch":
                 if not args:
@@ -663,7 +630,7 @@ async def start_telnet_server(world: World):
 
 
 # ----------------------------------------------------------------------
-# HTTP REST API (port 7780) – aiohttp
+# HTTP REST API (port 7780) - aiohttp
 # ----------------------------------------------------------------------
 async def status_handler(request):
     return web.json_response({"status": "ok", "timestamp": time.time()})
@@ -691,7 +658,7 @@ async def inject_scenario_handler(request):
     except Exception:
         return web.json_response({"error": "invalid JSON"}, status=400)
 
-    # Very naive validation – you can replace with a proper schema check
+    # Very naive validation - you can replace with a proper schema check
     if not isinstance(payload, dict) or "id" not in payload:
         return web.json_response({"error": "scenario must contain an 'id' field"}, status=400)
 
@@ -717,4 +684,16 @@ async def start_http_server(world: World):
     await runner.setup()
     site = web.TCPSite(runner, host="0.0.0.0", port=HTTP_PORT)
     await site.start()
-    print(f
+    print(f"HTTP API listening on port {HTTP_PORT}")
+    print(f"WebSocket server listening on port {WS_PORT}")
+    print(f"Telnet server listening on port {TELNET_PORT}")
+
+    # Keep running forever
+    await asyncio.Event().wait()
+
+
+if __name__ == "__main__":
+    try:
+        asyncio.run(main())
+    except KeyboardInterrupt:
+        print("\nServer shut down.")

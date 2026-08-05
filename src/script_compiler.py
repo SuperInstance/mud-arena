@@ -1,19 +1,3 @@
-Below is a **self‑contained Python module** that implements the requested MUD‑Arena script compiler.  
-All eight features are present:
-
-1. **DSL → `ScriptRule` list** (`parse`)  
-2. **Simple validation** (`_validate_rule`)  
-3. **Random script generation** (`generate_random`)  
-4. **Mutation** (`mutate`)  
-5. **Crossover / breeding** (`breed`)  
-6. **Binary export** (`to_binary`)  
-7. **Binary import** (`from_binary`)  
-8. **Pretty‑print back to DSL** (`to_dsl`)
-
-The code is heavily commented and uses `dataclasses`, `Enum`s and type hints for clarity.  
-Feel free to copy the whole file into a `.py` file and import `ScriptCompiler` in your project.
-
-```python
 #!/usr/bin/env python3
 """
 MUD‑Arena Script Compiler
@@ -691,4 +675,31 @@ class ScriptCompiler:
         if extra_mask & (1 << 3):
             parts.append("inventory_not_full")
 
-        return "
+        return " AND ".join(parts)
+
+    @staticmethod
+    def _action_to_str(rule: ScriptRule) -> str:
+        """Decode the action back to a readable string."""
+        at = ActionType(rule.action_type)
+        param = rule.action_param
+
+        if at == ActionType.USE_ITEM:
+            return f"use_item {ITEM_IDS_REV.get(param, f'item_{param}')}"
+        if at == ActionType.FLEE:
+            return f"flee {EXIT_IDS_REV.get(param, f'exit_{param}')}"
+        if at == ActionType.PICKUP:
+            return "pickup gold" if param == 1 else "pickup"
+        if at == ActionType.ATTACK:
+            return f"attack {TARGET_IDS_REV.get(param, f'target_{param}')}"
+        if at == ActionType.MOVE:
+            return f"move {DIRECTION_IDS_REV.get(param, f'dir_{param}')}"
+        return f"<action_{at.name}>"
+
+
+__all__ = [
+    "ScriptCompiler",
+    "ScriptRule",
+    "Script",
+    "ConditionType",
+    "ActionType",
+]
