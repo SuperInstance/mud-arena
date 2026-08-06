@@ -130,7 +130,10 @@ def _connect_rooms(rooms: List[Room], avg_degree: int = 2) -> None:
     # Add extra random edges to reach the desired average degree
     target_edges = avg_degree * len(rooms) // 2
     current_edges = sum(len(r.exits) for r in rooms) // 2
-    while current_edges < target_edges:
+    max_attempts = target_edges * 10 + 100  # safety limit to prevent infinite loop
+    attempts = 0
+    while current_edges < target_edges and attempts < max_attempts and len(rooms) > 1:
+        attempts += 1
         a, b = random.sample(rooms, 2)
         if b.id not in a.exits:
             a.exits.append(b.id)
@@ -376,14 +379,22 @@ class ScenarioGenerator:
         # Helper to recursively turn dicts into dataclass instances
         def _from_dict(cls, d):
             if isinstance(d, list):
-                return [_from_dict(cls.__args__[0], i) for i in d]  # type: ignore
+                try:
+                    return [_from_dict(cls.__args__[0], i) for i in d]  # type: ignore
+                except (AttributeError, TypeError):
+                    return d
             if not isinstance(d, dict):
+                return d
+            if not hasattr(cls, '__dataclass_fields__'):
                 return d
             field_names = {f.name for f in cls.__dataclass_fields__.values()}
             filtered = {k: v for k, v in d.items() if k in field_names}
             for f_name, f_type in cls.__annotations__.items():
                 if f_name in filtered:
-                    filtered[f_name] = _from_dict(f_type, filtered[f_name])
+                    try:
+                        filtered[f_name] = _from_dict(f_type, filtered[f_name])
+                    except (AttributeError, TypeError):
+                        pass
             return cls(**filtered)  # type: ignore
 
         scenario = _from_dict(Scenario, data)
@@ -403,6 +414,7 @@ class ScenarioGenerator:
         # Simple heuristic: compute success rate and map it to a difficulty.
         if not previous_results:
             target_difficulty = 5
+            success_rate = 0.0
         else:
             success_rate = sum(previous_results) / len(previous_results)
             # If success_rate > 0.6 → increase difficulty, else decrease.
@@ -511,14 +523,22 @@ class ScenarioGenerator:
         # Recursive reconstruction (mirrors the logic in generate_from_prompt)
         def _reconstruct(cls, d):
             if isinstance(d, list):
-                return [_reconstruct(cls.__args__[0], i) for i in d]  # type: ignore
+                try:
+                    return [_reconstruct(cls.__args__[0], i) for i in d]  # type: ignore
+                except (AttributeError, TypeError):
+                    return d
             if not isinstance(d, dict):
+                return d
+            if not hasattr(cls, '__dataclass_fields__'):
                 return d
             field_names = {f.name for f in cls.__dataclass_fields__.values()}
             filtered = {k: v for k, v in d.items() if k in field_names}
             for f_name, f_type in cls.__annotations__.items():
                 if f_name in filtered:
-                    filtered[f_name] = _reconstruct(f_type, filtered[f_name])
+                    try:
+                        filtered[f_name] = _reconstruct(f_type, filtered[f_name])
+                    except (AttributeError, TypeError):
+                        pass
             return cls(**filtered)  # type: ignore
 
         return _reconstruct(Scenario, raw)
