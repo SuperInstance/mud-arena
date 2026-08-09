@@ -209,7 +209,7 @@ class DashboardGenerator:
                     plugins: {{
                         title: {{ display: true, text: 'Difficulty → Survival' }},
                         tooltip: {{ callbacks: {{
-                            label: ctx => `Survival: ${(ctx.parsed.y*100).toFixed(1)}%`
+                            label: ctx => 'Survival: ' + (ctx.parsed.y*100).toFixed(1) + '%'
                         }}}}
                     }},
                     scales: {{
