@@ -35,8 +35,8 @@ python3 src/evolve.py --generations 100 --population 200 --scenarios 20
 
 ### Docker
 ```bash
-docker build -t mud-arena .
-docker run --gpus all mud-arena
+docker build -t mud-engine .
+docker run --gpus all mud-engine
 ```
 
 ## Making Changes
@@ -112,14 +112,14 @@ Contributions that optimize for specific hardware targets are welcome.
 
 ## Reporting Issues
 
-Open an [Issue](https://github.com/SuperInstance/mud-arena/issues) with:
+Open an [Issue](https://github.com/SuperInstance/mud-engine/issues) with:
 - Hardware specs (GPU model, RAM, OS)
 - Build target being used
 - Reproduction steps
 
 ## Questions?
 
-- Open a [Discussion](https://github.com/SuperInstance/mud-arena/discussions)
+- Open a [Discussion](https://github.com/SuperInstance/mud-engine/discussions)
 - Read the [Charter](CHARTER.md)
 - Read the [Boarding Manifesto](BOARDING-MANIFESTO.md)
-- Check existing [Issues](https://github.com/SuperInstance/mud-arena/issues)
+- Check existing [Issues](https://github.com/SuperInstance/mud-engine/issues)

@@ -54,7 +54,7 @@ I moved, checked battery, talked to agents, and surveyed. The loop is slow. Each
 
 ### groq-kimi-k2
 1. FIRST IMPRESSION – 3/10  
-   Landing page is a wall of text. I see “mud-arena”, a GitHub link, and a big block of lore that I don’t care about yet. No screenshots, no “Play Now” button, no visual cue that I’m even in the right place. I had to scroll halfway down to find the tiny “connect” link. First rule of MUDs: get the player typing inside 5 s. Right now I’m already gone.
+   Landing page is a wall of text. I see “mud-engine”, a GitHub link, and a big block of lore that I don’t care about yet. No screenshots, no “Play Now” button, no visual cue that I’m even in the right place. I had to scroll halfway down to find the tiny “connect” link. First rule of MUDs: get the player typing inside 5 s. Right now I’m already gone.
 
 2. ONBOARDING – 2/10  
    The MOTD dumps 15 lines of capitalised commands on me, then the game says “Type help for help”. That’s it. No tutorial, no context, no “what is a fishing vessel agent”. I typed HELP and got a 200-line alphabetical list. I still don’t know how to move, talk, or what the win condition is. A one-page “Quick Start” shown on first connect is non-negotiable.
