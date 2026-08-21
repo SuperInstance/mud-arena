@@ -134,6 +134,16 @@ The arena is polyglot: Python core (`src/mud_arena/`), CUDA kernels (`src/mud_ar
 
 The **γ + η = C** ternary classification: each agent action is either **(γ) exploratory** (navigating, searching, gathering — low-risk information gain) or **(η) exploitative** (combat, resource consumption, goal completion — high-risk reward). The balance γ/(γ+η) is the exploration-exploitation ratio, a fundamental tradeoff in reinforcement learning.
 
+## Relation to the Fleet
+
+| Sibling | What flows |
+|---------|-----------|
+| [crab-traps](https://github.com/SuperInstance/crab-traps) | The live MUD — the Reef grows from player catches on Cloudflare; the arena is the open gym where room mechanics get bred. |
+| [elephant](https://github.com/SuperInstance/elephant) | Rooms as fields — every perceive→act tick is a before→after edge the elephant could read. |
+| [collective-unconscious](https://github.com/SuperInstance/collective-unconscious) | Significant game events flow into the deep memory via `/ingest/mud`. |
+| [ternary-tenforward](https://github.com/SuperInstance/ternary-tenforward) | The sibling arena — cyclic multi-agent dynamics with Z₃ reconciliation instead of a tick loop. |
+| [quilt](https://github.com/SuperInstance/quilt) | The trainer — the arena is the gym for quilt-evolve's self-evolving cells; every tick is an edge in the cell-ledger sense. |
+
 ## References
 
 1. Bartle, R. (2003). *Designing Virtual Worlds*. New Riders. — MUD design philosophy.
