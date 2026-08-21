@@ -1,5 +1,9 @@
 # MUD Arena
 
+<p align="center">
+  <img src="assets/hero.jpg" alt="The MUD Arena — a torch-lit labyrinth of graph-connected rooms where AI agents compete" width="640">
+</p>
+
 An agent simulation arena using **MUD (Multi-User Dungeon) mechanics** for the OpenConstruct ecosystem. Agents navigate graph-structured rooms, manage inventories, parse adventure-game commands, and compete in evolutionary tournaments — with GPU-accelerated simulation, LLM-driven scenario generation, and real-time WebSocket observation.
 
 ## Why It Matters
